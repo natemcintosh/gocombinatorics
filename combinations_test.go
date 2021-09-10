@@ -1,9 +1,50 @@
 package gocombinatorics
 
 import (
+	"errors"
 	"math/big"
 	"testing"
 )
+
+func TestNewCombinationsErrors(t *testing.T) {
+	testCases := []struct {
+		desc        string
+		n           uint64
+		k           uint64
+		want_struct *Combinations
+		want_err    error
+	}{
+		{
+			desc:        "n <= 0",
+			n:           0,
+			k:           1,
+			want_struct: nil,
+			want_err:    errors.New("n must be greater than 0"),
+		},
+		{
+			desc:        "k <= 0",
+			n:           1,
+			k:           0,
+			want_struct: nil,
+			want_err:    errors.New("k must be greater than 0"),
+		},
+		{
+			desc:        "k > n",
+			n:           1,
+			k:           2,
+			want_struct: nil,
+			want_err:    errors.New("k must be less than or equal to n"),
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			_, got_err := NewCombinations(tC.n, tC.k)
+			if got_err == nil {
+				t.Errorf("NewCombinations(%d, %d) = %v, want %v", tC.n, tC.k, got_err, tC.want_err)
+			}
+		})
+	}
+}
 
 func TestFactorial(t *testing.T) {
 	testCases := []struct {
