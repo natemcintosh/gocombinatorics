@@ -10,14 +10,14 @@ var ErrEndOfCombinations = errors.New("end of combinations")
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
 type Combinations struct {
-	N, K          uint64
+	N, K          int
 	Length        *big.Int
 	Inds          []int
 	current_combo *big.Int
 }
 
 // // NewCombinations creates a new combinations object.
-func NewCombinations(n uint64, k uint64) (*Combinations, error) {
+func NewCombinations(n, k int) (*Combinations, error) {
 	// Check for cases where we can't do combinations
 	if k > n {
 		return nil, errors.New("k must be less than or equal to n")
@@ -27,10 +27,48 @@ func NewCombinations(n uint64, k uint64) (*Combinations, error) {
 		return nil, errors.New("k must be greater than 0")
 	}
 
-	len := nchoosek(n, k)
+	len := nchoosek(uint64(n), uint64(k))
 	inds := make([]int, k)
 	current_combo := big.NewInt(0)
 	return &Combinations{n, k, len, inds, current_combo}, nil
+}
+
+// Next will return the next combination of indices, until it reaches the end, at which
+// point it will return the error gocombinatorics.ErrEndOfCombinations.
+// The correct indices are acces in the Inds field of the combinations object.
+func (c *Combinations) Next() error {
+	// Check if we're at the end of the combinations
+	if c.current_combo.Cmp(c.Length) >= 0 {
+		return ErrEndOfCombinations
+	}
+
+	// Increment the current combo
+	c.current_combo.Add(c.current_combo, big.NewInt(1))
+
+	// If it's the first combo, just get the first k elements
+	if c.current_combo.Cmp(big.NewInt(1)) == 0 {
+		for i := 0; i < c.K; i++ {
+			c.Inds[i] = i
+		}
+		return nil
+	}
+
+	what_is_i := -1
+	// Go over possible indices from k to 0 in reverse order
+	for i := c.K - 1; i >= 0; i-- {
+		if c.Inds[i] != i+c.N-c.K {
+			what_is_i = i
+			break
+		} else if i == 0 {
+			return ErrEndOfCombinations
+		}
+	}
+	c.Inds[what_is_i] = c.Inds[what_is_i] + 1
+	for j := what_is_i + 1; j < c.K; j++ {
+		c.Inds[j] = c.Inds[j-1] + 1
+	}
+	return nil
+
 }
 
 // nchoosek returns the number of combinations of n things taken k at a time.
