@@ -1,9 +1,13 @@
 package gocombinatorics
 
 import (
+	"encoding/csv"
 	"errors"
+	"log"
 	"math/big"
+	"os"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -267,6 +271,12 @@ func TestCombinationsNext(t *testing.T) {
 				{6, 8, 9},
 				{7, 8, 9},
 			},
+		},
+		{
+			desc: "n = 200, k = 3",
+			n:    200,
+			k:    3,
+			want: csv_to_2d_int_array("200_combo_3.csv"),
 		},
 	}
 	for _, tC := range testCases {
@@ -574,4 +584,37 @@ func BenchmarkNChooseK(b *testing.B) {
 func bigIntFromString(s string) *big.Int {
 	i, _ := new(big.Int).SetString(s, 10)
 	return i
+}
+
+// csv_to_2d_int_array will read in a csv file and return a 2d array of ints
+func csv_to_2d_int_array(path string) [][]int {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	lines, err := reader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert the strings to ints
+	// First make a 2d slice of ints
+	int_lines := make([][]int, len(lines))
+
+	// For each line of strings, convert it to a slice of ints
+	for line_idx, line := range lines {
+		int_lines[line_idx] = make([]int, len(line))
+		for col_idx, s := range line {
+			int_lines[line_idx][col_idx], err = strconv.Atoi(s)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+
+	return int_lines
+
 }
