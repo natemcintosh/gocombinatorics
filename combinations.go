@@ -48,7 +48,7 @@ func nchoosek(n, k uint64) *big.Int {
 
 // factorial returns the factorial of a number, i.e. n! = n * (n-1) * (n-2) * ... * 1
 func factorial(n int64) *big.Int {
-	var fact big.Int
+	fact := big.NewInt(0)
 	fact.MulRange(1, n)
-	return &fact
+	return fact
 }
