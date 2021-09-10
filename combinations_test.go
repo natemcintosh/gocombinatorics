@@ -3,14 +3,15 @@ package gocombinatorics
 import (
 	"errors"
 	"math/big"
+	"reflect"
 	"testing"
 )
 
 func TestNewCombinationsErrors(t *testing.T) {
 	testCases := []struct {
 		desc        string
-		n           uint64
-		k           uint64
+		n           int
+		k           int
 		want_struct *Combinations
 		want_err    error
 	}{
@@ -41,6 +42,50 @@ func TestNewCombinationsErrors(t *testing.T) {
 			_, got_err := NewCombinations(tC.n, tC.k)
 			if got_err == nil {
 				t.Errorf("NewCombinations(%d, %d) = %v, want %v", tC.n, tC.k, got_err, tC.want_err)
+			}
+		})
+	}
+}
+
+func TestCombinationsNext(t *testing.T) {
+	testCases := []struct {
+		desc string
+		n    int
+		k    int
+		want [][]int
+	}{
+		{
+			desc: "n = 3, k = 2",
+			n:    3,
+			k:    2,
+			want: [][]int{
+				{0, 1},
+				{0, 2},
+				{1, 2},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			combinations, err := NewCombinations(tC.n, tC.k)
+			if err != nil {
+				t.Errorf("NewCombinations(%d, %d) = %v, want nil", tC.n, tC.k, err)
+			}
+			got := make([][]int, 0)
+			for {
+				err = combinations.Next()
+				if err == ErrEndOfCombinations {
+					break
+				}
+
+				// We need to append a copy of combinations.Inds to got
+				next_set_of_indices := make([]int, len(combinations.Inds))
+				copy(next_set_of_indices, combinations.Inds)
+				got = append(got, next_set_of_indices)
+			}
+
+			if !reflect.DeepEqual(got, tC.want) {
+				t.Errorf("Combinations(%d, %d) = %v, want %v", tC.n, tC.k, got, tC.want)
 			}
 		})
 	}
