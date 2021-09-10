@@ -5,7 +5,7 @@ import (
 	"math/big"
 )
 
-var EndOfCombinations = errors.New("End of combinations")
+var ErrEndOfCombinations = errors.New("end of combinations")
 
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
