@@ -336,6 +336,11 @@ func BenchmarkCombinationsNext(b *testing.B) {
 			n:    10,
 			k:    3,
 		},
+		{
+			desc: "n = 200, k = 3",
+			n:    200,
+			k:    3,
+		},
 	}
 
 	for _, bm := range benchmarks {
