@@ -2,9 +2,32 @@ package gocombinatorics
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"math/big"
 )
 
+func ExampleCominations_Next() {
+	my_strings := []string{"apple", "banana", "cherry"}
+	c, err := NewCombinations(len(my_strings), 2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		err = c.Next()
+		if err == ErrEndOfCombinations {
+			break
+		}
+		// Now c.Inds has the indices of the next combination
+		fmt.Println(c.Inds)
+
+		// Now it's up to you to get the elements at those indices from the slice
+	}
+
+}
+
+// The error thrown when end of iteration is reached.
 var ErrEndOfCombinations = errors.New("end of combinations")
 
 // Combinations will give you the indices of all possible combinations of an input
