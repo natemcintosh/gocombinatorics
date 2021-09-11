@@ -22,7 +22,7 @@ func ExampleCominations_Next() {
 		// Now c.Inds has the indices of the next combination
 		fmt.Println(c.Inds)
 
-		// Now it's up to you to get the elements at those indices from the slice
+		// It's up to you to get the elements at those indices from the slice
 	}
 
 }
