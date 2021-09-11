@@ -38,6 +38,19 @@ for c.Next() {
     // Now c.Inds has the indices of the next combination
     fmt.Println(c.Inds)
 
-    // Now it's up to you to get the elements at those indices from the slice
+    // Write yourself a helper function like `getStrElts` to get the elements from your slice
+    this_combination := getStrElts(my_strings, c.Inds)
+
+    // Do something with this combination
+    fmt.Println(this_combination)
+}
+
+// getStrElts will get the elements of an string slice at the specified indices
+func getStrElts(s []string], elts []int]) []string] {
+	result := make([]string], len(elts))
+	for i, e := range elts {
+		result[i] = s[e]
+	}
+	return result
 }
 ```
