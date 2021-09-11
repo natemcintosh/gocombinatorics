@@ -55,6 +55,8 @@ func NewCombinations(n, k int) (*Combinations, error) {
 // Next will return the next combination of indices, until it reaches the end, at which
 // point it will return false
 // The correct indices are acces in the Inds field of the combinations object.
+// This code was copied as much as possible from the python documentation itertools.combinations
+// (https://docs.python.org/3/library/itertools.html#itertools.combinations)
 func (c *Combinations) Next() bool {
 	// Check if we're at the end of the combinations
 	if c.current_combo.Cmp(c.Length) >= 0 {
