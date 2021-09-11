@@ -29,9 +29,11 @@ Say you have a slice of strings: `["apple, "banana", "cherry"]` and you want to 
 1. `["banana", "cherry"]`
 ```go
 my_strings := []string{"apple", "banana", "cherry"}
-c := NewCombination(len(my_strings), 2)
+c, err := NewCombinations(len(my_strings), 2)
+if err != nil {
+    log.Fatal(err)
+}
 
-var err error
 for {
     err = c.Next()
     if err == ErrEndOfCombinations {
