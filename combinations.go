@@ -14,11 +14,7 @@ func ExampleCominations_Next() {
 		log.Fatal(err)
 	}
 
-	for {
-		err = c.Next()
-		if err == ErrEndOfCombinations {
-			break
-		}
+	for c.Next() {
 		// Now c.Inds has the indices of the next combination
 		fmt.Println(c.Inds)
 
@@ -57,12 +53,12 @@ func NewCombinations(n, k int) (*Combinations, error) {
 }
 
 // Next will return the next combination of indices, until it reaches the end, at which
-// point it will return the error gocombinatorics.ErrEndOfCombinations.
+// point it will return false
 // The correct indices are acces in the Inds field of the combinations object.
-func (c *Combinations) Next() error {
+func (c *Combinations) Next() bool {
 	// Check if we're at the end of the combinations
 	if c.current_combo.Cmp(c.Length) >= 0 {
-		return ErrEndOfCombinations
+		return false
 	}
 
 	// Increment the current combo
@@ -73,7 +69,7 @@ func (c *Combinations) Next() error {
 		for i := 0; i < c.K; i++ {
 			c.Inds[i] = i
 		}
-		return nil
+		return true
 	}
 
 	what_is_i := -1
@@ -83,14 +79,14 @@ func (c *Combinations) Next() error {
 			what_is_i = i
 			break
 		} else if i == 0 {
-			return ErrEndOfCombinations
+			return false
 		}
 	}
 	c.Inds[what_is_i] = c.Inds[what_is_i] + 1
 	for j := what_is_i + 1; j < c.K; j++ {
 		c.Inds[j] = c.Inds[j-1] + 1
 	}
-	return nil
+	return true
 
 }
 

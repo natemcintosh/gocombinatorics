@@ -34,11 +34,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-for {
-    err = c.Next()
-    if err == ErrEndOfCombinations {
-        break
-    }
+for c.Next() {
     // Now c.Inds has the indices of the next combination
     fmt.Println(c.Inds)
 

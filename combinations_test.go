@@ -286,12 +286,7 @@ func TestCombinationsNext(t *testing.T) {
 				t.Errorf("NewCombinations(%d, %d) = %v, want nil", tC.n, tC.k, err)
 			}
 			got := make([][]int, 0)
-			for {
-				err = combinations.Next()
-				if err == ErrEndOfCombinations {
-					break
-				}
-
+			for combinations.Next() {
 				// We need to append a copy of combinations.Inds to got
 				next_set_of_indices := make([]int, len(combinations.Inds))
 				copy(next_set_of_indices, combinations.Inds)
@@ -350,11 +345,8 @@ func BenchmarkCombinationsNext(b *testing.B) {
 				if err != nil {
 					b.Errorf("NewCombinations(%d, %d) = %v, want nil", bm.n, bm.k, err)
 				}
-				for {
-					err = combinations.Next()
-					if err == ErrEndOfCombinations {
-						break
-					}
+				for combinations.Next() {
+
 				}
 			}
 
