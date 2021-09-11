@@ -23,9 +23,6 @@ func ExampleCominations_Next() {
 
 }
 
-// The error thrown when end of iteration is reached.
-var ErrEndOfCombinations = errors.New("end of combinations")
-
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
 type Combinations struct {
