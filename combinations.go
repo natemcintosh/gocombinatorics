@@ -89,6 +89,14 @@ func (c *Combinations) Next() bool {
 
 }
 
+func (c *Combinations) LenInds() int {
+	return c.K
+}
+
+func (c *Combinations) Indices() []int {
+	return c.Inds
+}
+
 // nchoosek returns the number of combinations of n things taken k at a time.
 // nchoosek(n, k) = n! / (k! * (n-k)!) if n > k
 // nchoosek(n, k) = 0 if n < k
