@@ -17,7 +17,7 @@ However, this is still good learning practice.
 ---
 ### On Offer:
 - [X] Lazy Combinations
-- [ ] Lazy Combinations with replacement
+- [X] Lazy Combinations with replacement
 - [ ] Lazy Permutations
 - [ ] Lazy Cartesian Product
 
