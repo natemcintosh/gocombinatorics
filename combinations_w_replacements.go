@@ -2,8 +2,48 @@ package gocombinatorics
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"math/big"
 )
+
+func ExampleCombinationsWithReplacement_Next() {
+	type Person struct {
+		Name string
+		age  int
+	}
+
+	// The stooges
+	people := []Person{
+		{"Larry", 20},
+		{"Curly", 30},
+		{"Moe", 40},
+		{"Shemp", 50},
+	}
+
+	// We want to see all possible combinations of length 4, with replacement
+	combos, err := NewCombinationsWithReplacement(len(people), 4)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Write yourself a helper function like `getPeopleElts` to get elements from the
+	// correct type of slice
+	getPeopleElts := func(people []Person, inds []int) []Person {
+		result := make([]Person, len(inds))
+		for i, ind := range inds {
+			result[i] = people[ind]
+		}
+		return result
+	}
+
+	// Now iterate over the combinations with replacement
+	for combos.Next() {
+		this_combo := getPeopleElts(people, combos.Inds)
+		fmt.Println(this_combo)
+	}
+
+}
 
 // CombinationsWithReplacement will give you the indices of all possible combinations
 // with replacement of an input slice/array of length N, choosing K elements.
