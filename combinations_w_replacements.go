@@ -30,6 +30,45 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 	return &CombinationsWithReplacement{n, k, len, inds, current_combo}, nil
 }
 
+// Next returns the next combination of indices until the end, and then returns false.
+// The correct indices are acces in the Inds field of the combinations object.
+// This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
+// (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
+func (c CombinationsWithReplacement) Next() bool {
+	// Check if we're at the end of the combinations
+	if c.current_combo.Cmp(c.Length) >= 0 {
+		return false
+	}
+
+	// Increment the current combo
+	c.current_combo.Add(c.current_combo, big.NewInt(1))
+
+	// If it's the first combo, the indices are all 0
+	if c.current_combo.Cmp(big.NewInt(1)) == 0 {
+		for i := 0; i < c.K; i++ {
+			c.Inds[i] = 0
+		}
+		return true
+	}
+
+	what_is_i := -1
+	// Go over the indices from (k-1) to 0 in reverse order
+	for i := c.K - 1; i >= 0; i-- {
+		if c.Inds[i] != c.N-1 {
+			what_is_i = i
+			break
+		} else if i == 0 {
+			return false
+		}
+	}
+	// This for loop mimics the python list slice
+	new_val := c.Inds[what_is_i] + 1
+	for i := what_is_i; i < c.K; i++ {
+		c.Inds[i] = new_val
+	}
+	return true
+}
+
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
 func num_combinations_w_replacement(n, k int) *big.Int {
 	numerator := factorial(int64(n + k - 1))
