@@ -9,7 +9,12 @@
 // functionality as well
 package gocombinatorics
 
-import "testing"
+import (
+	"fmt"
+	"math/big"
+	"math/rand"
+	"testing"
+)
 
 // Multiple types all adhere to this interface
 type CombinationLike interface {
@@ -88,4 +93,45 @@ func TestCombinationsProperties(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Need a way to randomly generate test cases. Need to make sure we don't test any
+// really huge cases which take forever to run.
+func Test100RandomCombinations(t *testing.T) {
+	for i := 0; i < 100; i++ {
+
+		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
+		n := rand.Int63n(50) + 1
+		k := rand.Int63n(n) + 1
+
+		// If any index should appear more than 10_000_000 times, skip this iteration
+		total_times := nchoosek(uint64(n), uint64(k))
+		one_less := nchoosek(uint64(n-1), uint64(k))
+		times_we_see_each_index := big.NewInt(0).Sub(total_times, one_less)
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			// Create the combination
+			c, err := NewCombinations(int(n), int(k))
+			if err != nil {
+				t.Errorf("Error creating combinations: %v", err)
+			}
+
+			// Count the number of times each item appears
+			counts := combinationLikeValueCounter(c)
+
+			// Check that each value in counts appears t.num_want_to_see times
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+
 }
