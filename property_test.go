@@ -9,6 +9,8 @@
 // functionality as well
 package gocombinatorics
 
+import "testing"
+
 // Multiple types all adhere to this interface
 type CombinationLike interface {
 	Next() bool
@@ -33,4 +35,57 @@ func combinationLikeValueCounter(c CombinationLike) map[int]int {
 
 	return result
 
+}
+
+func TestCombinationsProperties(t *testing.T) {
+	testCases := []struct {
+		desc            string
+		n               int
+		k               int
+		num_want_to_see int
+	}{
+		{
+			desc:            "n=3, k=2",
+			n:               3,
+			k:               2,
+			num_want_to_see: 2,
+		},
+		{
+			desc:            "n=10, k=2",
+			n:               10,
+			k:               2,
+			num_want_to_see: 9,
+		},
+		{
+			desc:            "n=10, k=7",
+			n:               10,
+			k:               7,
+			num_want_to_see: 120 - 36,
+		},
+		{
+			desc:            "n=50, k=5",
+			n:               50,
+			k:               5,
+			num_want_to_see: 211876,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			// Create the combination
+			c, err := NewCombinations(tC.n, tC.k)
+			if err != nil {
+				t.Errorf("Error creating combinations: %v", err)
+			}
+
+			// Count the number of times each item appears
+			counts := combinationLikeValueCounter(c)
+
+			// Check that each value in counts appears t.num_want_to_see times
+			for num, count := range counts {
+				if count != tC.num_want_to_see {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, tC.num_want_to_see, count)
+				}
+			}
+		})
+	}
 }
