@@ -74,7 +74,7 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 // The correct indices are acces in the Inds field of the combinations object.
 // This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
-func (c CombinationsWithReplacement) Next() bool {
+func (c *CombinationsWithReplacement) Next() bool {
 	// Check if we're at the end of the combinations
 	if c.current_combo.Cmp(c.Length) >= 0 {
 		return false
@@ -107,6 +107,14 @@ func (c CombinationsWithReplacement) Next() bool {
 		c.Inds[i] = new_val
 	}
 	return true
+}
+
+func (c *CombinationsWithReplacement) LenInds() int {
+	return c.K
+}
+
+func (c *CombinationsWithReplacement) Indices() []int {
+	return c.Inds
 }
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
