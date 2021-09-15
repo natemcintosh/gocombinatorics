@@ -56,9 +56,7 @@ type CombinationsWithReplacement struct {
 
 func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, error) {
 	// Check for cases where we can't do combinations with replacement
-	if k > n {
-		return nil, errors.New("k must be less than or equal to n")
-	} else if n <= 0 {
+	if n <= 0 {
 		return nil, errors.New("n must be greater than 0")
 	} else if k <= 0 {
 		return nil, errors.New("k must be greater than 0")
@@ -125,4 +123,18 @@ func num_combinations_w_replacement(n, k int) *big.Int {
 	denominator := new(big.Int).Mul(k_fact, n_minus_1_fact)
 	result := new(big.Int)
 	return result.Div(numerator, denominator)
+}
+
+// elts_in_combo_w_replacement is how many times we expect to see a given element when
+// carrying out combinations with replacement. In python style code, it is:
+// sum((k-(i-1)*num_combinations_w_replacement(n-1, i-1)) for i in range(1,k+1))
+func elts_in_combo_w_replacement(n, k int) *big.Int {
+	sum := big.NewInt(0)
+	for i := 1; i <= k; i++ {
+		n_cols := big.NewInt(int64(k - (i - 1)))
+		n_rows := num_combinations_w_replacement(n-1, i-1)
+		this_num := new(big.Int).Mul(n_cols, n_rows)
+		sum.Add(sum, this_num)
+	}
+	return sum
 }
