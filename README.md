@@ -14,6 +14,9 @@ Combination[T any]([]T, int) [][]T
 
 However, this is still good learning practice.
 
+**If you are looking for a more production ready combinatorics library** I would suggest
+using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin) library. Note however that gonum will not check for overflows; this library uses go's [math/big](https://pkg.go.dev/math/big) library to ensure no overflow (at the cost of speed). Also note that gonum doesn't provide combinations with replacement functionality.
+
 ---
 ### On Offer:
 - [X] Lazy Combinations
@@ -92,3 +95,7 @@ for combos.Next() {
     fmt.Println(this_combo)
 }
 ```
+
+---
+### How is this library tested?
+There are a few basic test, including one testing a combination of length 1,313,400, and one testing a combination with replacement of length 11,628. The file `property_test.go` also performs some basic property testing (do we see the number of elements we expect to) on 100 random inputs to combinations/combinations with replacement/permutations/cartesian products every time `go test` is run. 
