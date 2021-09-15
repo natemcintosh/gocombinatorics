@@ -16,7 +16,7 @@ func ExampleCominations_Next() {
 
 	for c.Next() {
 		// Now c.Inds has the indices of the next combination
-		fmt.Println(c.Inds)
+		fmt.Println(c.Indices())
 
 		// It's up to you to get the elements at those indices from the slice
 	}

@@ -39,7 +39,7 @@ func ExampleCombinationsWithReplacement_Next() {
 
 	// Now iterate over the combinations with replacement
 	for combos.Next() {
-		this_combo := getPeopleElts(people, combos.Inds)
+		this_combo := getPeopleElts(people, combos.Indices())
 		fmt.Println(this_combo)
 	}
 
