@@ -21,7 +21,7 @@ using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin)
 ### On Offer:
 - [X] Lazy Combinations
 - [X] Lazy Combinations with replacement
-- [ ] Lazy Permutations
+- [X] Lazy Permutations
 - [ ] Lazy Cartesian Product
 
 ---
@@ -38,11 +38,11 @@ if err != nil {
 }
 
 for c.Next() {
-    // Now c.Inds has the indices of the next combination
-    fmt.Println(c.Inds)
+    // Now c.Indices() has the indices of the next combination
+    fmt.Println(c.Indices())
 
     // Write yourself a helper function like `getStrElts` to get the elements from your slice
-    this_combination := getStrElts(my_strings, c.Inds)
+    this_combination := getStrElts(my_strings, c.Indices())
 
     // Do something with this combination
     fmt.Println(this_combination)
@@ -91,11 +91,17 @@ getPeopleElts := func(people []Person, inds []int) []Person {
 
 // Now iterate over the combinations with replacement
 for combos.Next() {
-    this_combo := getPeopleElts(people, combos.Inds)
+    this_combo := getPeopleElts(people, combos.Indices())
     fmt.Println(this_combo)
 }
 ```
 
 ---
 ### How is this library tested?
-There are a few basic test, including one testing a combination of length 1,313,400, and one testing a combination with replacement of length 11,628. The file `property_test.go` also performs some basic property testing (do we see the number of elements we expect to) on 100 random inputs to combinations/combinations with replacement/permutations/cartesian products every time `go test` is run. 
+There are a few basic test, including one testing a combination of length 1,313,400, one 
+testing a combination with replacement of length 11,628, one testing a permutation of 
+length 970,200. 
+ 
+The file `property_test.go` also performs some basic property testing (do we see the 
+number of elements we expect to) on 100 random inputs to combinations/combinations with
+replacement/permutations/ cartesian products every time `go test` is run. 
