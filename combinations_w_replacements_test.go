@@ -28,13 +28,6 @@ func TestNewCombinationsWithReplacementErrors(t *testing.T) {
 			want_struct: nil,
 			want_err:    errors.New("k must be greater than 0"),
 		},
-		{
-			desc:        "k > n",
-			n:           1,
-			k:           2,
-			want_struct: nil,
-			want_err:    errors.New("k must be less than or equal to n"),
-		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
