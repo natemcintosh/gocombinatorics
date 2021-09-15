@@ -26,10 +26,10 @@ func ExampleCominations_Next() {
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
 type Combinations struct {
-	N, K          int
-	Length        *big.Int
-	Inds          []int
-	current_combo *big.Int
+	N, K     int
+	Length   *big.Int
+	Inds     []int
+	position *big.Int
 }
 
 // // NewCombinations creates a new combinations object.
@@ -56,15 +56,15 @@ func NewCombinations(n, k int) (*Combinations, error) {
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations)
 func (c *Combinations) Next() bool {
 	// Check if we're at the end of the combinations
-	if c.current_combo.Cmp(c.Length) >= 0 {
+	if c.position.Cmp(c.Length) >= 0 {
 		return false
 	}
 
 	// Increment the current combo
-	c.current_combo.Add(c.current_combo, big.NewInt(1))
+	c.position.Add(c.position, big.NewInt(1))
 
 	// If it's the first combo, just get the first k elements
-	if c.current_combo.Cmp(big.NewInt(1)) == 0 {
+	if c.position.Cmp(big.NewInt(1)) == 0 {
 		for i := 0; i < c.K; i++ {
 			c.Inds[i] = i
 		}

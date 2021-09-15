@@ -64,8 +64,8 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 
 	len := num_combinations_w_replacement(n, k)
 	inds := make([]int, k)
-	current_combo := big.NewInt(0)
-	return &CombinationsWithReplacement{n, k, len, inds, current_combo}, nil
+	position := big.NewInt(0)
+	return &CombinationsWithReplacement{n, k, len, inds, position}, nil
 }
 
 // Next returns the next combination of indices until the end, and then returns false.
