@@ -43,10 +43,10 @@ func NewCombinations(n, k int) (*Combinations, error) {
 		return nil, errors.New("k must be greater than 0")
 	}
 
-	len := nchoosek(uint64(n), uint64(k))
+	Len := nchoosek(uint64(n), uint64(k))
 	inds := make([]int, k)
 	current_combo := big.NewInt(0)
-	return &Combinations{n, k, len, inds, current_combo}, nil
+	return &Combinations{n, k, Len, inds, current_combo}, nil
 }
 
 // Next will return the next combination of indices, until it reaches the end, at which
