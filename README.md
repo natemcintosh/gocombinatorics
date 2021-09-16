@@ -105,3 +105,7 @@ length 970,200.
 The file `property_test.go` also performs some basic property testing (do we see the 
 number of elements we expect to) on 100 random inputs to combinations/combinations with
 replacement/permutations/ cartesian products every time `go test` is run. 
+
+---
+### Potential Future Updates
+Mimic rust's excellent [itertools](https://github.com/rust-itertools/itertools) library. It does not require the use of big Int math, which helps keep it fast, but still doesn't need to worry about integer overflow.
