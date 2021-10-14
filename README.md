@@ -15,14 +15,13 @@ Combination[T any]([]T, int) [][]T
 However, this is still good learning practice.
 
 **If you are looking for a more production ready combinatorics library** I would suggest
-using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin) library. Note however that gonum will not check for overflows; this library uses go's [math/big](https://pkg.go.dev/math/big) library to ensure no overflow (at the cost of speed). Also note that gonum doesn't provide combinations with replacement functionality.
+using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin) library. Note however that gonum doesn't provide combinations with replacement functionality.
 
 ---
 ### On Offer:
 - [X] Lazy Combinations
 - [X] Lazy Combinations with replacement
 - [X] Lazy Permutations
-- [ ] Lazy Cartesian Product
 
 ---
 ### How to use:
@@ -107,5 +106,5 @@ number of elements we expect to) on 100 random inputs to combinations/combinatio
 replacement/permutations/ cartesian products every time `go test` is run. 
 
 ---
-### Potential Future Updates
-Mimic rust's excellent [itertools](https://github.com/rust-itertools/itertools) library. It does not require the use of big Int math, which helps keep it fast, but still doesn't need to worry about integer overflow.
+### Recent Improvements:
+Now no longer require the use of big Int math, which helps keep it fast, but still doesn't need to worry about integer overflow.
