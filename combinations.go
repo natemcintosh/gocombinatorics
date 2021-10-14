@@ -26,10 +26,10 @@ func ExampleCominations_Next() {
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
 type Combinations struct {
-	N, K     int
-	Length   *big.Int
-	Inds     []int
-	position *big.Int
+	N, K    int
+	isfirst bool
+	Inds    []int
+	Length  *big.Int
 }
 
 // // NewCombinations creates a new combinations object.
@@ -42,11 +42,10 @@ func NewCombinations(n, k int) (*Combinations, error) {
 	} else if k <= 0 {
 		return nil, errors.New("k must be greater than 0")
 	}
-
-	Len := nchoosek(uint64(n), uint64(k))
+	isfirst := true
 	inds := make([]int, k)
-	current_combo := big.NewInt(0)
-	return &Combinations{n, k, Len, inds, current_combo}, nil
+	Length := nchoosek(uint64(n), uint64(k))
+	return &Combinations{n, k, isfirst, inds, Length}, nil
 }
 
 // Next will return the next combination of indices, until it reaches the end, at which
@@ -55,19 +54,12 @@ func NewCombinations(n, k int) (*Combinations, error) {
 // This code was copied as much as possible from the python documentation itertools.combinations
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations)
 func (c *Combinations) Next() bool {
-	// Check if we're at the end of the combinations
-	if c.position.Cmp(c.Length) >= 0 {
-		return false
-	}
-
-	// Increment the current combo
-	c.position.Add(c.position, big.NewInt(1))
-
-	// If it's the first combo, just get the first k elements
-	if c.position.Cmp(big.NewInt(1)) == 0 {
+	// If this is the first combo, just get the first k elements
+	if c.isfirst {
 		for i := 0; i < c.K; i++ {
 			c.Inds[i] = i
 		}
+		c.isfirst = false
 		return true
 	}
 
