@@ -48,10 +48,10 @@ func ExampleCombinationsWithReplacement_Next() {
 // CombinationsWithReplacement will give you the indices of all possible combinations
 // with replacement of an input slice/array of length N, choosing K elements.
 type CombinationsWithReplacement struct {
-	N, K          int
-	Length        *big.Int
-	Inds          []int
-	current_combo *big.Int
+	N, K    int
+	Length  *big.Int
+	Inds    []int
+	isfirst bool
 }
 
 func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, error) {
@@ -64,8 +64,8 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 
 	len := num_combinations_w_replacement(n, k)
 	inds := make([]int, k)
-	position := big.NewInt(0)
-	return &CombinationsWithReplacement{n, k, len, inds, position}, nil
+	isfirst := true
+	return &CombinationsWithReplacement{n, k, len, inds, isfirst}, nil
 }
 
 // Next returns the next combination of indices until the end, and then returns false.
@@ -73,19 +73,12 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 // This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
 func (c *CombinationsWithReplacement) Next() bool {
-	// Check if we're at the end of the combinations
-	if c.current_combo.Cmp(c.Length) >= 0 {
-		return false
-	}
-
-	// Increment the current combo
-	c.current_combo.Add(c.current_combo, big.NewInt(1))
-
 	// If it's the first combo, the indices are all 0
-	if c.current_combo.Cmp(big.NewInt(1)) == 0 {
+	if c.isfirst {
 		for i := 0; i < c.K; i++ {
 			c.Inds[i] = 0
 		}
+		c.isfirst = false
 		return true
 	}
 
