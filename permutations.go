@@ -6,11 +6,11 @@ import (
 )
 
 type Permutations struct {
-	N, K     int
-	Length   *big.Int
-	Inds     []int
-	cycles   []int
-	position *big.Int
+	N, K    int
+	Length  *big.Int
+	Inds    []int
+	cycles  []int
+	isfirst bool
 }
 
 func NewPermutations(n, k int) (*Permutations, error) {
@@ -25,33 +25,18 @@ func NewPermutations(n, k int) (*Permutations, error) {
 
 	// A cycles slice
 	cycles := stepped_range(n, n-k, -1)
-
-	current_combo := big.NewInt(0)
-	return &Permutations{n, k, Len, Inds, cycles, current_combo}, nil
+	isfirst := true
+	return &Permutations{n, k, Len, Inds, cycles, isfirst}, nil
 }
 
 func (p *Permutations) Next() bool {
-	// Check if we're at the end of the permutations
-	if p.position.Cmp(p.Length) >= 0 {
-		return false
-	}
-
-	// Increment the current permutation
-	p.position.Add(p.position, big.NewInt(1))
-
 	// Check if we're at the first permutation
-	if p.position.Cmp(big.NewInt(1)) == 0 {
+	if p.isfirst {
 		// Update inds with 1,...,k
 		for i := 0; i < p.K; i++ {
 			p.Inds[i] = i
 		}
-
-		return true
-	}
-
-	// If K == 1, just return the current position - 1
-	if p.K == 1 {
-		p.Inds = []int{int(p.position.Int64()) - 1}
+		p.isfirst = false
 		return true
 	}
 
