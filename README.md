@@ -48,8 +48,8 @@ for c.Next() {
 }
 
 // getStrElts will get the elements of an string slice at the specified indices
-func getStrElts(s []string], elts []int]) []string] {
-	result := make([]string], len(elts))
+func getStrElts(s []string, elts []int]) []string] {
+	result := make([]string, len(elts))
 	for i, e := range elts {
 		result[i] = s[e]
 	}
