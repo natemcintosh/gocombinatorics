@@ -170,3 +170,39 @@ func Test100RandomCombinationsWithReplacement(t *testing.T) {
 	}
 
 }
+
+func Test100RandomPermutations(t *testing.T) {
+	// Do 100 iterations
+	for i := 0; i < 100; i++ {
+		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
+		n := rand.Int63n(15) + 1
+		k := rand.Int63n(n) + 1
+
+		// If any index should appear more than 10_000_000 times, skip this iteration
+		times_we_see_each_index := elts_in_permutations(int(n), int(k))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			// Create the permutation
+			p, err := NewPermutations(int(n), int(k))
+			if err != nil {
+				t.Errorf("Error creating Permutations: %v", err)
+			}
+
+			// Count the number of times each item appears
+			var counts map[int]int = combinationLikeValueCounter(p)
+
+			// Check that each value in counts appears t.num_want_to_see times
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}

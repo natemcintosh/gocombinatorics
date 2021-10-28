@@ -72,11 +72,25 @@ func (p *Permutations) Indices() []int {
 	return p.Inds[:p.K]
 }
 
+func (p *Permutations) LenInds() int {
+	return p.K
+}
+
 func n_permutations(n, k int) *big.Int {
 	numerator := factorial(int64(n))
 	denominator := factorial(int64(n - k))
 	result := new(big.Int).Div(numerator, denominator)
 	return result
+}
+
+func elts_in_permutations(n, k int) *big.Int {
+	if n == k {
+		return n_permutations(n, k)
+	}
+
+	total_perms := n_permutations(int(n), int(k))
+	n_minus_1_perms := n_permutations(int(n-1), int(k))
+	return big.NewInt(0).Sub(total_perms, n_minus_1_perms)
 }
 
 // Mimics python's range() with a step argument
