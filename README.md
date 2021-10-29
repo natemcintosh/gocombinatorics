@@ -19,9 +19,21 @@ using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin)
 
 ---
 ### On Offer:
-- [X] Lazy Combinations
-- [X] Lazy Combinations with replacement
-- [X] Lazy Permutations
+- [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
+- [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
+- [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
+
+Each of the above structs meets the interface
+```go
+type CombinationLike interface {
+	Next() bool
+	LenInds() int
+	Indices() []int
+}
+```
+- `Next()` is what you use to iterate forward
+- `LenInds()` tells you how long the indices slice is (you could also get this from `len(c.Indices()))`
+- `Indices()` gives you the slice containing the indices of the items for this iteration
 
 ---
 ### How to use:
@@ -117,14 +129,34 @@ for combos.Next() {
 
 ---
 ### How is this library tested?
-There are a few basic test, including one testing a combination of length 1,313,400, one 
-testing a combination with replacement of length 11,628, one testing a permutation of 
-length 970,200. 
- 
-The file `property_test.go` also performs some basic property testing (do we see the 
+There are a few basic test, including one testing a combination of length 1,313,400, one
+testing a combination with replacement of length 11,628, one testing a permutation of
+length 970,200.
+
+The file `property_test.go` also performs some basic property testing (do we see the
 number of elements we expect to) on 100 random inputs to combinations/combinations with
-replacement/permutations every time `go test` is run. 
+replacement/permutations every time `go test` is run.
 
 ---
-### Recent Improvements:
-Now no longer require the use of big Int math, which helps keep it fast, but still doesn't need to worry about integer overflow.
+### Thoughts for Future Improvements:
+Once generics are added in go1.18, this package could provide a generic "fill up the buffer"
+function as seen in the `fill_person_buffer` used above. It would probably look like
+```go
+// FillBuffer will fill up a buffer with the items from `data` at `indices`
+func FillBuffer[T any](buffer []T, data []T, indices []int) {
+	if len(indices) != len(buffer) {
+		log.Fatal("Buffer needs to be same size as indices")
+	}
+
+	for buff_idx, data_idx := range indices {
+		buffer[buff_idx] = data[data_idx]
+	}
+
+}
+```
+
+Or perhaps we could add the generic buffer as a field to each `CombinationLike` struct.
+Then the user calls `c.Items()` to get the items for this iteration. This has the benefit
+of being simpler for the user: they don't have to create the buffer. Just have to make 
+sure that the user is clear on whether we are re-using the underlying array. See
+https://pkg.go.dev/encoding/csv#Reader on `ReuseRecord`. Should I mimic that?
