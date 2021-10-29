@@ -30,6 +30,13 @@ Say you have a slice of strings: `["apple, "banana", "cherry"]` and you want to 
 1. `["apple", "cherry"]`
 1. `["banana", "cherry"]`
 ```go
+import (
+	"fmt"
+	"log"
+
+	combo "github.com/natemcintosh/gocombinatorics"
+)
+
 my_strings := []string{"apple", "banana", "cherry"}
 c, err := NewCombinations(len(my_strings), 2)
 if err != nil {
@@ -48,7 +55,7 @@ for c.Next() {
 }
 
 // getStrElts will get the elements of an string slice at the specified indices
-func getStrElts(s []string, elts []int]) []string {
+func getStrElts(s []string, elts []int) []string {
 	result := make([]string, len(elts))
 	for i, e := range elts {
 		result[i] = s[e]
@@ -57,11 +64,18 @@ func getStrElts(s []string, elts []int]) []string {
 }
 ```
 
-Here's another example getting combinations with replacement for a slice of People structs 
+Here's another example getting combinations with replacement for a slice of People structs. For variety's sake, this example will have a reusable buffer to reduce the number of allocations.
 ```go
+import (
+	"fmt"
+	"log"
+
+	combo "github.com/natemcintosh/gocombinatorics"
+)
+
 type Person struct {
     Name string
-    age  int
+    Age  int
 }
 
 // The stooges
@@ -78,20 +92,26 @@ if err != nil {
     log.Fatal(err)
 }
 
-// Write yourself a helper function like `getPeopleElts` to get elements from the
-// correct type of slice
-getPeopleElts := func(people []Person, inds []int) []Person {
-    result := make([]Person, len(inds))
-    for i, ind := range inds {
-        result[i] = people[ind]
-    }
-    return result
+// fill_person_buffer will fill up a buffer with the items from `data` at `indices`
+fill_person_buffer = func(buffer []Person, data []Person, indices []int) {
+	if len(indices) != len(buffer) {
+		log.Fatal("Buffer needs to be same size as indices")
+	}
+
+	for buff_idx, data_idx := range indices {
+		buffer[buff_idx] = data[data_idx]
+	}
+
 }
+
+// Create the buffer. Note that using a buffer may be faster, but will always overwrite
+// the last iteration
+buff := make([]Person, combos.LenInds())
 
 // Now iterate over the combinations with replacement
 for combos.Next() {
-    this_combo := getPeopleElts(people, combos.Indices())
-    fmt.Println(this_combo)
+    fill_person_buffer(buff, people, combos.Indices())
+    fmt.Println(buff)
 }
 ```
 
