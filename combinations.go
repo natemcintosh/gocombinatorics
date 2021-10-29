@@ -2,26 +2,8 @@ package gocombinatorics
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"math/big"
 )
-
-func ExampleCominations_Next() {
-	my_strings := []string{"apple", "banana", "cherry"}
-	c, err := NewCombinations(len(my_strings), 2)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for c.Next() {
-		// Now c.Inds has the indices of the next combination
-		fmt.Println(c.Indices())
-
-		// It's up to you to get the elements at those indices from the slice
-	}
-
-}
 
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length N, choosing K elements.
