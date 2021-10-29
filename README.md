@@ -42,6 +42,8 @@ Say you have a slice of strings: `["apple, "banana", "cherry"]` and you want to 
 1. `["apple", "cherry"]`
 1. `["banana", "cherry"]`
 ```go
+package main
+
 import (
 	"fmt"
 	"log"
@@ -49,21 +51,23 @@ import (
 	combo "github.com/natemcintosh/gocombinatorics"
 )
 
-my_strings := []string{"apple", "banana", "cherry"}
-c, err := NewCombinations(len(my_strings), 2)
-if err != nil {
-    log.Fatal(err)
-}
+func main() {
+	my_strings := []string{"apple", "banana", "cherry"}
+	c, err := combo.NewCombinations(len(my_strings), 2)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-for c.Next() {
-    // Now c.Indices() has the indices of the next combination
-    fmt.Println(c.Indices())
+	for c.Next() {
+		// Now c.Indices() has the indices of the next combination
+		fmt.Println(c.Indices())
 
-    // Write yourself a helper function like `getStrElts` to get the elements from your slice
-    this_combination := getStrElts(my_strings, c.Indices())
+		// Write yourself a helper function like `getStrElts` to get the elements from your slice
+		this_combination := getStrElts(my_strings, c.Indices())
 
-    // Do something with this combination
-    fmt.Println(this_combination)
+		// Do something with this combination
+		fmt.Println(this_combination)
+	}
 }
 
 // getStrElts will get the elements of an string slice at the specified indices
@@ -74,10 +78,13 @@ func getStrElts(s []string, elts []int) []string {
 	}
 	return result
 }
+
 ```
 
 Here's another example getting combinations with replacement for a slice of People structs. For variety's sake, this example will have a reusable buffer to reduce the number of allocations.
 ```go
+package main
+
 import (
 	"fmt"
 	"log"
@@ -86,44 +93,46 @@ import (
 )
 
 type Person struct {
-    Name string
-    Age  int
+	Name string
+	Age  int
 }
 
-// The stooges
-people := []Person{
-    {"Larry", 20},
-    {"Curly", 30},
-    {"Moe", 40},
-    {"Shemp", 50},
-}
-
-// We want to see all possible combinations of length 4, with replacement
-combos, err := NewCombinationsWithReplacement(len(people), 4)
-if err != nil {
-    log.Fatal(err)
-}
-
-// fill_person_buffer will fill up a buffer with the items from `data` at `indices`
-fill_person_buffer = func(buffer []Person, data []Person, indices []int) {
-	if len(indices) != len(buffer) {
-		log.Fatal("Buffer needs to be same size as indices")
+func main() {
+	// The stooges
+	people := []Person{
+		{"Larry", 20},
+		{"Curly", 30},
+		{"Moe", 40},
+		{"Shemp", 50},
 	}
 
-	for buff_idx, data_idx := range indices {
-		buffer[buff_idx] = data[data_idx]
+	// We want to see all possible combinations of length 4, with replacement
+	combos, err := combo.NewCombinationsWithReplacement(len(people), 4)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-}
+	// fill_person_buffer will fill up a buffer with the items from `data` at `indices`
+	fill_person_buffer := func(buffer []Person, data []Person, indices []int) {
+		if len(indices) != len(buffer) {
+			log.Fatal("Buffer needs to be same size as indices")
+		}
 
-// Create the buffer. Note that using a buffer may be faster, but will always overwrite
-// the last iteration
-buff := make([]Person, combos.LenInds())
+		for buff_idx, data_idx := range indices {
+			buffer[buff_idx] = data[data_idx]
+		}
 
-// Now iterate over the combinations with replacement
-for combos.Next() {
-    fill_person_buffer(buff, people, combos.Indices())
-    fmt.Println(buff)
+	}
+
+	// Create the buffer. Note that using a buffer may be faster, but will always overwrite
+	// the last iteration
+	buff := make([]Person, combos.LenInds())
+
+	// Now iterate over the combinations with replacement
+	for combos.Next() {
+		fill_person_buffer(buff, people, combos.Indices())
+		fmt.Println(buff)
+	}
 }
 ```
 
