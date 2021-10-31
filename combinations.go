@@ -55,7 +55,7 @@ func (c *Combinations) Next() bool {
 			return false
 		}
 	}
-	c.Inds[what_is_i] = c.Inds[what_is_i] + 1
+	c.Inds[what_is_i]++
 	for j := what_is_i + 1; j < c.K; j++ {
 		c.Inds[j] = c.Inds[j-1] + 1
 	}
