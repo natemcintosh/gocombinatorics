@@ -10,7 +10,7 @@ import (
 type Combinations struct {
 	N, K    int
 	isfirst bool
-	Inds    []int
+	inds    []int
 	Length  *big.Int
 }
 
@@ -39,7 +39,7 @@ func (c *Combinations) Next() bool {
 	// If this is the first combo, just get the first k elements
 	if c.isfirst {
 		for i := 0; i < c.K; i++ {
-			c.Inds[i] = i
+			c.inds[i] = i
 		}
 		c.isfirst = false
 		return true
@@ -48,16 +48,16 @@ func (c *Combinations) Next() bool {
 	what_is_i := -1
 	// Go over possible indices from k to 0 in reverse order
 	for i := c.K - 1; i >= 0; i-- {
-		if c.Inds[i] != i+c.N-c.K {
+		if c.inds[i] != i+c.N-c.K {
 			what_is_i = i
 			break
 		} else if i == 0 {
 			return false
 		}
 	}
-	c.Inds[what_is_i]++
+	c.inds[what_is_i]++
 	for j := what_is_i + 1; j < c.K; j++ {
-		c.Inds[j] = c.Inds[j-1] + 1
+		c.inds[j] = c.inds[j-1] + 1
 	}
 	return true
 
@@ -68,7 +68,7 @@ func (c *Combinations) LenInds() int {
 }
 
 func (c *Combinations) Indices() []int {
-	return c.Inds
+	return c.inds
 }
 
 // nchoosek returns the number of combinations of n things taken k at a time.

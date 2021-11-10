@@ -8,7 +8,7 @@ import (
 type Permutations struct {
 	N, K    int
 	Length  *big.Int
-	Inds    []int
+	inds    []int
 	cycles  []int
 	isfirst bool
 }
@@ -34,7 +34,7 @@ func (p *Permutations) Next() bool {
 	if p.isfirst {
 		// Update inds with 1,...,k
 		for i := 0; i < p.K; i++ {
-			p.Inds[i] = i
+			p.inds[i] = i
 		}
 		p.isfirst = false
 		return true
@@ -45,23 +45,23 @@ func (p *Permutations) Next() bool {
 		if p.cycles[i] == 0 {
 			// Move item at i to the end of the slice
 			// Grab the element at i
-			ith_elt := p.Inds[i]
+			ith_elt := p.inds[i]
 
 			// Delete the element at i
-			p.Inds = append(p.Inds[:i], p.Inds[i+1:]...)
+			p.inds = append(p.inds[:i], p.inds[i+1:]...)
 
 			// Append ith_elt to the end of the slice
-			p.Inds = append(p.Inds, ith_elt)
+			p.inds = append(p.inds, ith_elt)
 
 			p.cycles[i] = p.N - i
 		} else {
 			j := p.cycles[i]
 			// BUG: the python code is indices[i], indices[-j] = indices[-j], indices[i]
 			// And aparently the code below does not mimic it how I thought it did
-			new_at_i := p.Inds[len(p.Inds)-j]
-			new_at_minus_j := p.Inds[i]
-			p.Inds[i] = new_at_i
-			p.Inds[len(p.Inds)-j] = new_at_minus_j
+			new_at_i := p.inds[len(p.inds)-j]
+			new_at_minus_j := p.inds[i]
+			p.inds[i] = new_at_i
+			p.inds[len(p.inds)-j] = new_at_minus_j
 			return true
 		}
 	}
@@ -69,7 +69,7 @@ func (p *Permutations) Next() bool {
 }
 
 func (p *Permutations) Indices() []int {
-	return p.Inds[:p.K]
+	return p.inds[:p.K]
 }
 
 func (p *Permutations) LenInds() int {

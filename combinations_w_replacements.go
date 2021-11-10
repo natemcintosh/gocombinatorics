@@ -10,7 +10,7 @@ import (
 type CombinationsWithReplacement struct {
 	N, K    int
 	Length  *big.Int
-	Inds    []int
+	inds    []int
 	isfirst bool
 }
 
@@ -36,7 +36,7 @@ func (c *CombinationsWithReplacement) Next() bool {
 	// If it's the first combo, the indices are all 0
 	if c.isfirst {
 		for i := 0; i < c.K; i++ {
-			c.Inds[i] = 0
+			c.inds[i] = 0
 		}
 		c.isfirst = false
 		return true
@@ -45,7 +45,7 @@ func (c *CombinationsWithReplacement) Next() bool {
 	what_is_i := -1
 	// Go over the indices from (k-1) to 0 in reverse order
 	for i := c.K - 1; i >= 0; i-- {
-		if c.Inds[i] != c.N-1 {
+		if c.inds[i] != c.N-1 {
 			what_is_i = i
 			break
 		} else if i == 0 {
@@ -53,9 +53,9 @@ func (c *CombinationsWithReplacement) Next() bool {
 		}
 	}
 	// This for loop mimics the python list slice
-	new_val := c.Inds[what_is_i] + 1
+	new_val := c.inds[what_is_i] + 1
 	for i := what_is_i; i < c.K; i++ {
-		c.Inds[i] = new_val
+		c.inds[i] = new_val
 	}
 	return true
 }
@@ -65,7 +65,7 @@ func (c *CombinationsWithReplacement) LenInds() int {
 }
 
 func (c *CombinationsWithReplacement) Indices() []int {
-	return c.Inds
+	return c.inds
 }
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)

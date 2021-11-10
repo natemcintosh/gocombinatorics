@@ -104,8 +104,8 @@ func TestCombinationsWithReplacementNew(t *testing.T) {
 			got := make([][]int, 0)
 			for combinations_w_replacement.Next() {
 				// We need to append a copy of combinations.Inds to got
-				next_set_of_indices := make([]int, len(combinations_w_replacement.Inds))
-				copy(next_set_of_indices, combinations_w_replacement.Inds)
+				next_set_of_indices := make([]int, len(combinations_w_replacement.inds))
+				copy(next_set_of_indices, combinations_w_replacement.inds)
 				got = append(got, next_set_of_indices)
 			}
 

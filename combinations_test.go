@@ -288,7 +288,7 @@ func TestCombinationsNext(t *testing.T) {
 			got := make([][]int, 0)
 			for combinations.Next() {
 				// We need to append a copy of combinations.Inds to got
-				next_set_of_indices := make([]int, len(combinations.Inds))
+				next_set_of_indices := make([]int, len(combinations.inds))
 				copy(next_set_of_indices, combinations.Indices())
 				got = append(got, next_set_of_indices)
 			}
