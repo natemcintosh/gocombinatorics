@@ -6,9 +6,9 @@ import (
 )
 
 // Combinations will give you the indices of all possible combinations of an input
-// slice/array of length N, choosing K elements.
+// slice/array of length n, choosing k elements.
 type Combinations struct {
-	N, K    int
+	n, k    int
 	isfirst bool
 	inds    []int
 	Length  *big.Int
@@ -38,7 +38,7 @@ func NewCombinations(n, k int) (*Combinations, error) {
 func (c *Combinations) Next() bool {
 	// If this is the first combo, just get the first k elements
 	if c.isfirst {
-		for i := 0; i < c.K; i++ {
+		for i := 0; i < c.k; i++ {
 			c.inds[i] = i
 		}
 		c.isfirst = false
@@ -47,8 +47,8 @@ func (c *Combinations) Next() bool {
 
 	what_is_i := -1
 	// Go over possible indices from k to 0 in reverse order
-	for i := c.K - 1; i >= 0; i-- {
-		if c.inds[i] != i+c.N-c.K {
+	for i := c.k - 1; i >= 0; i-- {
+		if c.inds[i] != i+c.n-c.k {
 			what_is_i = i
 			break
 		} else if i == 0 {
@@ -56,7 +56,7 @@ func (c *Combinations) Next() bool {
 		}
 	}
 	c.inds[what_is_i]++
-	for j := what_is_i + 1; j < c.K; j++ {
+	for j := what_is_i + 1; j < c.k; j++ {
 		c.inds[j] = c.inds[j-1] + 1
 	}
 	return true
@@ -64,7 +64,7 @@ func (c *Combinations) Next() bool {
 }
 
 func (c *Combinations) LenInds() int {
-	return c.K
+	return c.k
 }
 
 func (c *Combinations) Indices() []int {

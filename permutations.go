@@ -6,7 +6,7 @@ import (
 )
 
 type Permutations struct {
-	N, K    int
+	n, k    int
 	Length  *big.Int
 	inds    []int
 	cycles  []int
@@ -33,14 +33,14 @@ func (p *Permutations) Next() bool {
 	// Check if we're at the first permutation
 	if p.isfirst {
 		// Update inds with 1,...,k
-		for i := 0; i < p.K; i++ {
+		for i := 0; i < p.k; i++ {
 			p.inds[i] = i
 		}
 		p.isfirst = false
 		return true
 	}
 
-	for i := p.K - 1; i >= 0; i-- {
+	for i := p.k - 1; i >= 0; i-- {
 		p.cycles[i] -= 1
 		if p.cycles[i] == 0 {
 			// Move item at i to the end of the slice
@@ -53,7 +53,7 @@ func (p *Permutations) Next() bool {
 			// Append ith_elt to the end of the slice
 			p.inds = append(p.inds, ith_elt)
 
-			p.cycles[i] = p.N - i
+			p.cycles[i] = p.n - i
 		} else {
 			j := p.cycles[i]
 			// BUG: the python code is indices[i], indices[-j] = indices[-j], indices[i]
@@ -69,11 +69,11 @@ func (p *Permutations) Next() bool {
 }
 
 func (p *Permutations) Indices() []int {
-	return p.inds[:p.K]
+	return p.inds[:p.k]
 }
 
 func (p *Permutations) LenInds() int {
-	return p.K
+	return p.k
 }
 
 func n_permutations(n, k int) *big.Int {

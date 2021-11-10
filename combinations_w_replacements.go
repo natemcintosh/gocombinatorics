@@ -6,9 +6,9 @@ import (
 )
 
 // CombinationsWithReplacement will give you the indices of all possible combinations
-// with replacement of an input slice/array of length N, choosing K elements.
+// with replacement of an input slice/array of length n, choosing k elements.
 type CombinationsWithReplacement struct {
-	N, K    int
+	n, k    int
 	Length  *big.Int
 	inds    []int
 	isfirst bool
@@ -35,7 +35,7 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 func (c *CombinationsWithReplacement) Next() bool {
 	// If it's the first combo, the indices are all 0
 	if c.isfirst {
-		for i := 0; i < c.K; i++ {
+		for i := 0; i < c.k; i++ {
 			c.inds[i] = 0
 		}
 		c.isfirst = false
@@ -44,8 +44,8 @@ func (c *CombinationsWithReplacement) Next() bool {
 
 	what_is_i := -1
 	// Go over the indices from (k-1) to 0 in reverse order
-	for i := c.K - 1; i >= 0; i-- {
-		if c.inds[i] != c.N-1 {
+	for i := c.k - 1; i >= 0; i-- {
+		if c.inds[i] != c.n-1 {
 			what_is_i = i
 			break
 		} else if i == 0 {
@@ -54,14 +54,14 @@ func (c *CombinationsWithReplacement) Next() bool {
 	}
 	// This for loop mimics the python list slice
 	new_val := c.inds[what_is_i] + 1
-	for i := what_is_i; i < c.K; i++ {
+	for i := what_is_i; i < c.k; i++ {
 		c.inds[i] = new_val
 	}
 	return true
 }
 
 func (c *CombinationsWithReplacement) LenInds() int {
-	return c.K
+	return c.k
 }
 
 func (c *CombinationsWithReplacement) Indices() []int {
