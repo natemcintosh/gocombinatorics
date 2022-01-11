@@ -77,7 +77,8 @@ func TestCombinationsProperties(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			// Create the combination
-			c, err := NewCombinations(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			c, err := NewCombinations(data, tC.k)
 			if err != nil {
 				t.Errorf("Error creating combinations: %v", err)
 			}
@@ -114,7 +115,8 @@ func Test100RandomCombinations(t *testing.T) {
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
 			// Create the combination
-			c, err := NewCombinations(int(n), int(k))
+			data := stepped_range(0, int(n), 1)
+			c, err := NewCombinations(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating combinations: %v", err)
 			}

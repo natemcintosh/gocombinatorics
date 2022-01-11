@@ -7,15 +7,21 @@ import (
 
 // Combinations will give you the indices of all possible combinations of an input
 // slice/array of length n, choosing k elements.
-type Combinations struct {
+type Combinations[T any] struct {
+	data    []T
 	n, k    int
 	isfirst bool
 	inds    []int
 	Length  *big.Int
+	buffer  []T
 }
 
 // // NewCombinations creates a new combinations object.
-func NewCombinations(n, k int) (*Combinations, error) {
+func NewCombinations[T any](input_data []T, k int) (*Combinations[T], error) {
+	data := make([]T, len(input_data))
+	copy(data, input_data)
+	n := len(input_data)
+
 	// Check for cases where we can't do combinations
 	if k > n {
 		return nil, errors.New("k must be less than or equal to n")
@@ -27,7 +33,12 @@ func NewCombinations(n, k int) (*Combinations, error) {
 	isfirst := true
 	inds := make([]int, k)
 	Length := nchoosek(uint64(n), uint64(k))
-	return &Combinations{n, k, isfirst, inds, Length}, nil
+
+	// Make the buffer slice
+	buffer := make([]T, k)
+	fill_buffer(buffer, data, inds)
+
+	return &Combinations[T]{data, n, k, isfirst, inds, Length, buffer}, nil
 }
 
 // Next will return the next combination of indices, until it reaches the end, at which
@@ -35,7 +46,7 @@ func NewCombinations(n, k int) (*Combinations, error) {
 // The correct indices are acces in the Inds field of the combinations object.
 // This code was copied as much as possible from the python documentation itertools.combinations
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations)
-func (c *Combinations) Next() bool {
+func (c *Combinations[T]) Next() bool {
 	// If this is the first combo, just get the first k elements
 	if c.isfirst {
 		for i := 0; i < c.k; i++ {
@@ -63,12 +74,21 @@ func (c *Combinations) Next() bool {
 
 }
 
-func (c *Combinations) LenInds() int {
+func (c *Combinations[T]) LenInds() int {
 	return c.k
 }
 
-func (c *Combinations) Indices() []int {
+func (c *Combinations[T]) Indices() []int {
 	return c.inds
+}
+
+// Items is how you get the items in this combination. You iterate with `c.Next()`, and
+// then get the combination with `c.Items()`. The data in the slice returned will be
+// overwritten every iteration. If you need to keep the data from each iteration, be
+// sure to make a copy.
+func (c *Combinations[T]) Items() []T {
+	fill_buffer(c.buffer, c.data, c.inds)
+	return c.buffer
 }
 
 // nchoosek returns the number of combinations of n things taken k at a time.

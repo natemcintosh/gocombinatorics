@@ -16,7 +16,7 @@ func TestNewCombinationsErrors(t *testing.T) {
 		desc        string
 		n           int
 		k           int
-		want_struct *Combinations
+		want_struct *Combinations[int]
 		want_err    error
 	}{
 		{
@@ -43,7 +43,8 @@ func TestNewCombinationsErrors(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			_, got_err := NewCombinations(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			_, got_err := NewCombinations(data, tC.k)
 			if got_err == nil {
 				t.Errorf("NewCombinations(%d, %d) = %v, want %v", tC.n, tC.k, got_err, tC.want_err)
 			}
@@ -281,7 +282,8 @@ func TestCombinationsNext(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			combinations, err := NewCombinations(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			combinations, err := NewCombinations(data, tC.k)
 			if err != nil {
 				t.Errorf("NewCombinations(%d, %d) = %v, want nil", tC.n, tC.k, err)
 			}
@@ -341,7 +343,8 @@ func BenchmarkCombinationsNext(b *testing.B) {
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				combinations, err := NewCombinations(bm.n, bm.k)
+				data := stepped_range(0, bm.n, 1)
+				combinations, err := NewCombinations(data, bm.k)
 				if err != nil {
 					b.Errorf("NewCombinations(%d, %d) = %v, want nil", bm.n, bm.k, err)
 				}
