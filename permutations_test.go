@@ -11,7 +11,7 @@ func TestNewPermutationErrors(t *testing.T) {
 		desc        string
 		n           int
 		k           int
-		want_struct *Permutations
+		want_struct *Permutations[int]
 		want_err    error
 	}{
 		{
@@ -24,7 +24,8 @@ func TestNewPermutationErrors(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got_struct, got_err := NewPermutations(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			got_struct, got_err := NewPermutations(data, tC.k)
 			if got_err == nil {
 				t.Errorf("NewPermutation() = %v, want %v", got_struct, tC.want_struct)
 			}
@@ -136,7 +137,8 @@ func TestPermutationsNext(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			permutations, err := NewPermutations(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			permutations, err := NewPermutations(data, tC.k)
 			if err != nil {
 				t.Errorf("NewPermutation() = %v, want %v", err, nil)
 			}

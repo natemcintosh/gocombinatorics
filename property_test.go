@@ -17,7 +17,7 @@ import (
 )
 
 // Multiple types all adhere to this interface
-type CombinationLike interface {
+type combinationLike interface {
 	Next() bool
 	LenInds() int
 	Indices() []int
@@ -26,7 +26,7 @@ type CombinationLike interface {
 // combinationLikeValueCounter will iterate through something combination like and count
 // each unique value, returning it in a map.
 // It assumes that the combinationLike has already been created
-func combinationLikeValueCounter(c CombinationLike) map[int]int {
+func combinationLikeValueCounter(c combinationLike) map[int]int {
 	// Make the result map
 	result := make(map[int]int, c.LenInds())
 
@@ -177,6 +177,7 @@ func Test100RandomPermutations(t *testing.T) {
 		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
 		n := rand.Int63n(15) + 1
 		k := rand.Int63n(n) + 1
+		data := stepped_range(0, int(n), 1)
 
 		// If any index should appear more than 10_000_000 times, skip this iteration
 		times_we_see_each_index := elts_in_permutations(int(n), int(k))
@@ -188,7 +189,7 @@ func Test100RandomPermutations(t *testing.T) {
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
 			// Create the permutation
-			p, err := NewPermutations(int(n), int(k))
+			p, err := NewPermutations(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating Permutations: %v", err)
 			}
