@@ -25,7 +25,7 @@ func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 	copy(data, input_data)
 	n := len(input_data)
 	if k > n {
-		return nil, errors.New("k must be less than or equal to n")
+		return nil, errors.New("k must be less than or equal to len(input_data)")
 	}
 	Len := n_permutations(n, k)
 	inds := make([]int, n)

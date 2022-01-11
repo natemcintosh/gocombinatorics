@@ -19,7 +19,7 @@ func TestNewPermutationErrors(t *testing.T) {
 			n:           3,
 			k:           4,
 			want_struct: nil,
-			want_err:    errors.New("k must be less than or equal to n"),
+			want_err:    errors.New("k must be less than or equal to len(input_data)"),
 		},
 	}
 	for _, tC := range testCases {

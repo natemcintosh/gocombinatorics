@@ -7,17 +7,23 @@ import (
 
 // CombinationsWithReplacement will give you the indices of all possible combinations
 // with replacement of an input slice/array of length n, choosing k elements.
-type CombinationsWithReplacement struct {
+type CombinationsWithReplacement[T any] struct {
+	data    []T
 	n, k    int
 	Length  *big.Int
 	inds    []int
 	isfirst bool
+	buffer  []T
 }
 
-func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, error) {
+func NewCombinationsWithReplacement[T any](input_data []T, k int) (*CombinationsWithReplacement[T], error) {
+	data := make([]T, len(input_data))
+	copy(data, input_data)
+	n := len(input_data)
+
 	// Check for cases where we can't do combinations with replacement
 	if n <= 0 {
-		return nil, errors.New("n must be greater than 0")
+		return nil, errors.New("len(input_data) must be greater than 0")
 	} else if k <= 0 {
 		return nil, errors.New("k must be greater than 0")
 	}
@@ -25,14 +31,19 @@ func NewCombinationsWithReplacement(n, k int) (*CombinationsWithReplacement, err
 	len := num_combinations_w_replacement(n, k)
 	inds := make([]int, k)
 	isfirst := true
-	return &CombinationsWithReplacement{n, k, len, inds, isfirst}, nil
+
+	// Create the buffer
+	buffer := make([]T, k)
+	fill_buffer(buffer, data, inds)
+
+	return &CombinationsWithReplacement[T]{data, n, k, len, inds, isfirst, buffer}, nil
 }
 
 // Next returns the next combination of indices until the end, and then returns false.
 // The correct indices are acces in the Inds field of the combinations object.
 // This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
-func (c *CombinationsWithReplacement) Next() bool {
+func (c *CombinationsWithReplacement[T]) Next() bool {
 	// If it's the first combo, the indices are all 0
 	if c.isfirst {
 		for i := 0; i < c.k; i++ {
@@ -60,11 +71,11 @@ func (c *CombinationsWithReplacement) Next() bool {
 	return true
 }
 
-func (c *CombinationsWithReplacement) LenInds() int {
+func (c *CombinationsWithReplacement[T]) LenInds() int {
 	return c.k
 }
 
-func (c *CombinationsWithReplacement) Indices() []int {
+func (c *CombinationsWithReplacement[T]) Indices() []int {
 	return c.inds
 }
 

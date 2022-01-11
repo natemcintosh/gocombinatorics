@@ -24,9 +24,9 @@ func NewCombinations[T any](input_data []T, k int) (*Combinations[T], error) {
 
 	// Check for cases where we can't do combinations
 	if k > n {
-		return nil, errors.New("k must be less than or equal to n")
+		return nil, errors.New("k must be less than or equal to len(input_data)")
 	} else if n <= 0 {
-		return nil, errors.New("n must be greater than 0")
+		return nil, errors.New("len(input_data) must be greater than 0")
 	} else if k <= 0 {
 		return nil, errors.New("k must be greater than 0")
 	}

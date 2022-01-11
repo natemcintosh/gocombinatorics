@@ -11,7 +11,7 @@ func TestNewCombinationsWithReplacementErrors(t *testing.T) {
 		desc        string
 		n           int
 		k           int
-		want_struct *CombinationsWithReplacement
+		want_struct *CombinationsWithReplacement[int]
 		want_err    error
 	}{
 		{
@@ -31,7 +31,8 @@ func TestNewCombinationsWithReplacementErrors(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			_, got_err := NewCombinationsWithReplacement(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			_, got_err := NewCombinationsWithReplacement(data, tC.k)
 			if got_err == nil {
 				t.Errorf("NewCombinationsWithReplacement() = %v, want %v", got_err, tC.want_err)
 			}
@@ -97,7 +98,8 @@ func TestCombinationsWithReplacementNew(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			combinations_w_replacement, err := NewCombinationsWithReplacement(tC.n, tC.k)
+			data := stepped_range(0, tC.n, 1)
+			combinations_w_replacement, err := NewCombinationsWithReplacement(data, tC.k)
 			if err != nil {
 				t.Errorf("NewCombinationsWithReplacement(%d, %d) = %v, want nil", tC.n, tC.k, err)
 			}
@@ -157,7 +159,8 @@ func BenchmarkCombinationsWithReplacementNext(b *testing.B) {
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				combinations_w_replacement, err := NewCombinationsWithReplacement(bm.n, bm.k)
+				data := stepped_range(0, bm.n, 1)
+				combinations_w_replacement, err := NewCombinationsWithReplacement(data, bm.k)
 				if err != nil {
 					b.Errorf("NewCombinations(%d, %d) = %v, want nil", bm.n, bm.k, err)
 				}

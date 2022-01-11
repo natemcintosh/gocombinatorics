@@ -153,7 +153,8 @@ func Test100RandomCombinationsWithReplacement(t *testing.T) {
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
 			// Create the combination
-			c, err := NewCombinationsWithReplacement(int(n), int(k))
+			data := stepped_range(0, int(n), 1)
+			c, err := NewCombinationsWithReplacement(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating CombinationsWithReplacement: %v", err)
 			}
