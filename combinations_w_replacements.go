@@ -79,6 +79,15 @@ func (c *CombinationsWithReplacement[T]) Indices() []int {
 	return c.inds
 }
 
+// Items is how you get the items in this combination. You iterate with `c.Next()`, and
+// then get the combination with `c.Items()`. The data in the slice returned will be
+// overwritten every iteration. If you need to keep the data from each iteration, be
+// sure to make a copy.
+func (c *CombinationsWithReplacement[T]) Items() []T {
+	fill_buffer(c.buffer, c.data, c.inds)
+	return c.buffer
+}
+
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
 func num_combinations_w_replacement(n, k int) *big.Int {
 	numerator := factorial(int64(n + k - 1))
