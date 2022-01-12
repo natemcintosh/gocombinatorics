@@ -16,6 +16,7 @@ type CombinationsWithReplacement[T any] struct {
 	buffer  []T
 }
 
+// NewCombinationsWithReplacement creates a new instance of CombinationsWithReplacement
 func NewCombinationsWithReplacement[T any](input_data []T, k int) (*CombinationsWithReplacement[T], error) {
 	data := make([]T, len(input_data))
 	copy(data, input_data)
@@ -40,7 +41,6 @@ func NewCombinationsWithReplacement[T any](input_data []T, k int) (*Combinations
 }
 
 // Next returns the next combination of indices until the end, and then returns false.
-// The correct indices are acces in the Inds field of the combinations object.
 // This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
 func (c *CombinationsWithReplacement[T]) Next() bool {

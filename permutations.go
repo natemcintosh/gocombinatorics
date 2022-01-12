@@ -47,7 +47,9 @@ func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 
 // Next will return true if there is another iteration to go, and false if not. It will
 // update the state of the Permutations struct. The new permutation can be accessed with
-// p.Items()
+// p.Items().
+// This code was copied as much as possible from the python documentation itertools.permutations
+// (https://docs.python.org/3/library/itertools.html#itertools.permutations)
 func (p *Permutations[T]) Next() bool {
 	// Check if we're at the first permutation
 	if p.isfirst {
