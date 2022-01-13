@@ -302,6 +302,45 @@ func TestCombinationsNext(t *testing.T) {
 	}
 }
 
+func TestCombinationsNextString(t *testing.T) {
+	testCases := []struct {
+		desc string
+		data []string
+		k    int
+		want [][]string
+	}{
+		{
+			desc: "simple string",
+			data: []string{"a", "b", "c"},
+			k:    2,
+			want: [][]string{
+				{"a", "b"},
+				{"a", "c"},
+				{"b", "c"},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			combinations, err := NewCombinations(tC.data, tC.k)
+			if err != nil {
+				t.Errorf("NewCombinations(%v, %d) = %v, want nil", tC.data, tC.k, err)
+			}
+			got := make([][]string, 0)
+			for combinations.Next() {
+				// We need to append a copy of combinations.Inds to got
+				next_set_of_indices := make([]string, len(combinations.inds))
+				copy(next_set_of_indices, combinations.Items())
+				got = append(got, next_set_of_indices)
+			}
+
+			if !reflect.DeepEqual(got, tC.want) {
+				t.Errorf("Combinations(%v, %d) = %v, want %v", tC.data, tC.k, got, tC.want)
+			}
+		})
+	}
+}
+
 func BenchmarkCombinationsNext(b *testing.B) {
 	benchmarks := []struct {
 		desc string
