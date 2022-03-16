@@ -38,7 +38,15 @@ func NewCombinations[T any](input_data []T, k int) (*Combinations[T], error) {
 	buffer := make([]T, k)
 	fill_buffer(buffer, data, inds)
 
-	return &Combinations[T]{data, n, k, isfirst, inds, Length, buffer}, nil
+	return &Combinations[T]{
+		data:    data,
+		n:       n,
+		k:       k,
+		isfirst: isfirst,
+		inds:    inds,
+		Length:  Length,
+		buffer:  buffer,
+	}, nil
 }
 
 // Next will return the next combination of indices, until it reaches the end, at which

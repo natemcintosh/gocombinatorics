@@ -42,7 +42,16 @@ func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 	fill_buffer(buffer, data, inds)
 
 	// Return the Permutations struct
-	return &Permutations[T]{data, n, k, Len, inds, cycles, isfirst, buffer}, nil
+	return &Permutations[T]{
+		data:    data,
+		n:       n,
+		k:       k,
+		Length:  Len,
+		inds:    inds,
+		cycles:  cycles,
+		isfirst: isfirst,
+		buffer:  buffer,
+	}, nil
 }
 
 // Next will return true if there is another iteration to go, and false if not. It will

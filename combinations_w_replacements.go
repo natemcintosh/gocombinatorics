@@ -37,7 +37,15 @@ func NewCombinationsWithReplacement[T any](input_data []T, k int) (*Combinations
 	buffer := make([]T, k)
 	fill_buffer(buffer, data, inds)
 
-	return &CombinationsWithReplacement[T]{data, n, k, len, inds, isfirst, buffer}, nil
+	return &CombinationsWithReplacement[T]{
+		data:    data,
+		n:       n,
+		k:       k,
+		Length:  len,
+		inds:    inds,
+		isfirst: isfirst,
+		buffer:  buffer,
+	}, nil
 }
 
 // Next returns the next combination of indices until the end, and then returns false.
