@@ -7,8 +7,7 @@ Basic lazy combinatorics. It gives you the next combination/permutation when you
 `Next()`. Access the items with `Items()`.
 
 This library has been updated to use generics. If you require a version of go 
-<1.18, please use version 0.2.0 of this library. If you are reading this before 1.18 is
-released, you will need to use `gotip`.
+<1.18, please use version 0.2.0 of this library.
 
 **If you are looking for a more production ready combinatorics library** I would suggest
 using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin) library. Note however that gonum doesn't provide combinations with replacement functionality.
