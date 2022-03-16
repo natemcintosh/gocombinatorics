@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/natemcintosh/gocombinatorics.svg)](https://pkg.go.dev/github.com/natemcintosh/gocombinatorics)
+
 # gocombinatorics
 ## Author: Nathan McIntosh
 
