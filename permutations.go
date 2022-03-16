@@ -127,10 +127,11 @@ func elts_in_permutations(n, k int) *big.Int {
 
 // Mimics python's range() with a step argument
 func stepped_range(start int, stop int, step int) []int {
+	approx_size := (stop - start) / step
 	if step == 0 {
-		return make([]int, 0)
+		return make([]int, 0, approx_size)
 	}
-	result := make([]int, 0)
+	result := make([]int, 0, approx_size)
 	val := -1
 	for {
 		val++

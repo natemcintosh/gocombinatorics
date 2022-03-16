@@ -53,6 +53,26 @@ func TestNewCombinationsErrors(t *testing.T) {
 	}
 }
 
+func FuzzNewCombinations(f *testing.F) {
+	// This fuzzing test is just to test the setup of new combination objects
+	f.Add(3, 3)
+	f.Add(5, 2)
+	f.Fuzz(func(t *testing.T, stepped_range_size int, k int) {
+		if k > stepped_range_size {
+			t.Skip("Don't want to test cases where k > stepped_range_size")
+		} else if stepped_range_size <= 0 {
+			t.Skip("Don't want to test cases where n <= 0")
+		} else if k <= 0 {
+			t.Skip("Don't want to test cases where k <= 0")
+		}
+		data := stepped_range(0, stepped_range_size, 1)
+		_, err := NewCombinations(data, k)
+		if err != nil {
+			t.Errorf("Error setting up Combinations with args data=%v, k=%v", data, k)
+		}
+	})
+}
+
 func TestCombinationsNext(t *testing.T) {
 	testCases := []struct {
 		desc string
