@@ -11,16 +11,13 @@ Basic lazy combinatorics. It gives you the next combination/permutation when you
 This library has been updated to use generics. If you require a version of go 
 <1.18, please use version 0.2.0 of this library.
 
-**If you are looking for a more production ready combinatorics library** I would suggest
-using gonum's [combin](https://pkg.go.dev/gonum.org/v1/gonum@v0.9.3/stat/combin) library. Note however that gonum doesn't provide combinations with replacement functionality.
-
 ---
 ### On Offer:
 - [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
 
-Each of the above structs meets the interface
+Each of the above structs meets the interface (but the interface is not actually used anywhere)
 ```go
 type CombinationLike[T any] interface {
 	Next() bool
@@ -30,9 +27,9 @@ type CombinationLike[T any] interface {
 }
 ```
 - `Next()` is what you use to iterate forward
+- `Items()` will return a slice of the items in this combination/permutation. Note that 
 - `LenInds()` tells you how long the indices slice is (you could also get this from `len(c.Indices()))`
 - `Indices()` gives you the slice containing the indices of the items for this iteration
-- `Items()` will return a slice of the items in this combination/permutation. Note that 
 this buffer is re-used every iteration. If you require the results of every iteration, 
 make a copy of the slice returned by `Items()` every iteration.
 
