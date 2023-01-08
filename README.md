@@ -27,11 +27,10 @@ type CombinationLike[T any] interface {
 }
 ```
 - `Next()` is what you use to iterate forward
-- `Items()` will return a slice of the items in this combination/permutation. Note that 
+- `Items()` will return a slice of the items in this combination/permutation. Note that this buffer is re-used every iteration. If you require the results of every iteration, make a copy of the slice returned by `Items()` every iteration.
 - `LenInds()` tells you how long the indices slice is (you could also get this from `len(c.Indices()))`
 - `Indices()` gives you the slice containing the indices of the items for this iteration
-this buffer is re-used every iteration. If you require the results of every iteration, 
-make a copy of the slice returned by `Items()` every iteration.
+
 
 ---
 ### How to use:
