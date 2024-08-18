@@ -1,18 +1,19 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/natemcintosh/gocombinatorics.svg)](https://pkg.go.dev/github.com/natemcintosh/gocombinatorics)
 
 # gocombinatorics
-## Author: Nathan McIntosh
+**Author: Nathan McIntosh**
 
----
-### About
+## About
 Basic lazy combinatorics. It gives you the next combination/permutation when you call 
 `Next()`. Access the items with `Items()`.
 
 This library has been updated to use generics. If you require a version of go 
 <1.18, please use version 0.2.0 of this library.
 
----
-### On Offer:
+## Update about iterators added in go 1.23
+With the addition of [iterators](https://tip.golang.org/doc/go1.23#iterators) added in go 1.23, this package could definitely use a refactor to use them. If I have time, I will try to add this, but until then, it still uses an older method of iterating, namely calling the `Next()` method to step forward.
+
+## On Offer:
 - [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
@@ -33,7 +34,7 @@ type CombinationLike[T any] interface {
 
 
 ---
-### How to use:
+## How to use:
 Say you have a slice of strings: `["apple, "banana", "cherry"]` and you want to get all the combinations of 2 strings:
 1. `["apple", "banana"]`
 1. `["apple", "cherry"]`
@@ -101,7 +102,7 @@ func main() {
 ```
 
 ---
-### How is this library tested?
+## How is this library tested?
 There are a few basic test, including one testing a combination of length 1,313,400, one
 testing a combination with replacement of length 11,628, one testing a permutation of
 length 970,200.
