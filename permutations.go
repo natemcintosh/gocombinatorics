@@ -2,24 +2,20 @@ package gocombinatorics
 
 import (
 	"errors"
+	"iter"
 	"math/big"
+	"slices"
 )
 
-// Permutations allows the user to iteratively generate all permutations of a certain length
-// for any slice of data. Instantiate it with `NewPermutations`, iterate with the `.Next()`
-// method, and access the data with the `.Items()` method.
-// Permutations meets the `CombinationLike` interface
+// Permutations generates all k-length permutations of the input data.
+// Use NewPermutations to create one, then iterate with All().
 type Permutations[T any] struct {
-	data    []T
-	n, k    int
-	Length  *big.Int
-	inds    []int
-	cycles  []int
-	isfirst bool
-	buffer  []T
+	data   []T
+	n, k   int
+	Length *big.Int
 }
 
-// NewPermutations will return an instance of the `Permutations` struct
+// NewPermutations creates a new Permutations iterator.
 func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 	data := make([]T, len(input_data))
 	copy(data, input_data)
@@ -27,96 +23,66 @@ func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 	if k > n {
 		return nil, errors.New("k must be less than or equal to len(input_data)")
 	}
-	Len := n_permutations(n, k)
-	inds := make([]int, n)
-	for i := 0; i < n; i++ {
-		inds[i] = i
-	}
+	Length := n_permutations(n, k)
 
-	// A cycles slice
-	cycles := stepped_range(n, n-k, -1)
-	isfirst := true
-
-	// The buffer slice
-	buffer := make([]T, k)
-	fill_buffer(buffer, data, inds[:k])
-
-	// Return the Permutations struct
 	return &Permutations[T]{
-		data:    data,
-		n:       n,
-		k:       k,
-		Length:  Len,
-		inds:    inds,
-		cycles:  cycles,
-		isfirst: isfirst,
-		buffer:  buffer,
+		data:   data,
+		n:      n,
+		k:      k,
+		Length: Length,
 	}, nil
 }
 
-// Next will return true if there is another iteration to go, and false if not. It will
-// update the state of the Permutations struct. The new permutation can be accessed with
-// p.Items().
-// This code was copied as much as possible from the python documentation itertools.permutations
+// All returns an iterator over all permutations. Each iteration yields
+// a freshly allocated indices slice and items slice.
+// This code follows the algorithm from Python's itertools.permutations
 // (https://docs.python.org/3/library/itertools.html#itertools.permutations)
-func (p *Permutations[T]) Next() bool {
-	// Check if we're at the first permutation
-	if p.isfirst {
-		// Update inds with 1,...,k
-		for i := 0; i < p.k; i++ {
-			p.inds[i] = i
+func (p *Permutations[T]) All() iter.Seq2[[]int, []T] {
+	return func(yield func([]int, []T) bool) {
+		inds := make([]int, p.n)
+		for i := range p.n {
+			inds[i] = i
 		}
-		p.isfirst = false
-		return true
-	}
+		cycles := stepped_range(p.n, p.n-p.k, -1)
 
-	for i := p.k - 1; i >= 0; i-- {
-		p.cycles[i] -= 1
-		if p.cycles[i] == 0 {
-			// Move item at i to the end of the slice
-			// Grab the element at i
-			ith_elt := p.inds[i]
+		if !yield(slices.Clone(inds[:p.k]), p.items(inds[:p.k])) {
+			return
+		}
 
-			// Delete the element at i
-			p.inds = append(p.inds[:i], p.inds[i+1:]...)
-
-			// Append ith_elt to the end of the slice
-			p.inds = append(p.inds, ith_elt)
-
-			p.cycles[i] = p.n - i
-		} else {
-			j := p.cycles[i]
-			// BUG: the python code is indices[i], indices[-j] = indices[-j], indices[i]
-			// And aparently the code below does not mimic it how I thought it did
-			new_at_i := p.inds[len(p.inds)-j]
-			new_at_minus_j := p.inds[i]
-			p.inds[i] = new_at_i
-			p.inds[len(p.inds)-j] = new_at_minus_j
-			return true
+		for {
+			found := false
+			for i := p.k - 1; i >= 0; i-- {
+				cycles[i]--
+				if cycles[i] == 0 {
+					// Rotate element at i to the end
+					ith := inds[i]
+					inds = append(inds[:i], inds[i+1:]...)
+					inds = append(inds, ith)
+					cycles[i] = p.n - i
+				} else {
+					j := cycles[i]
+					inds[i], inds[len(inds)-j] = inds[len(inds)-j], inds[i]
+					if !yield(slices.Clone(inds[:p.k]), p.items(inds[:p.k])) {
+						return
+					}
+					found = true
+					break
+				}
+			}
+			if !found {
+				return
+			}
 		}
 	}
-	return false
 }
 
-// Indices returns the current permutation indices. The returned slice is
-// shared with the iterator's internal state and will be overwritten on the
-// next call to Next(). Copy it if you need to keep it.
-func (p *Permutations[T]) Indices() []int {
-	return p.inds[:p.k]
-}
-
-// LenInds gives you how many items you want in each permutation
-func (p *Permutations[T]) LenInds() int {
-	return p.k
-}
-
-// Items is how you get the items in this permutation. You iterate with `p.Next()`, and
-// then get the permutation with `p.Items()`. The data in the slice returned will be
-// overwritten every iteration. If you need to keep the data from each iteration, be
-// sure to make a copy.
-func (p *Permutations[T]) Items() []T {
-	fill_buffer(p.buffer, p.data, p.inds[:p.k])
-	return p.buffer
+// items builds a fresh slice of items at the given indices.
+func (p *Permutations[T]) items(inds []int) []T {
+	result := make([]T, len(inds))
+	for i, idx := range inds {
+		result[i] = p.data[idx]
+	}
+	return result
 }
 
 func n_permutations(n, k int) *big.Int {
@@ -130,9 +96,8 @@ func elts_in_permutations(n, k int) *big.Int {
 	if n == k {
 		return n_permutations(n, k)
 	}
-
-	total_perms := n_permutations(int(n), int(k))
-	n_minus_1_perms := n_permutations(int(n-1), int(k))
+	total_perms := n_permutations(n, k)
+	n_minus_1_perms := n_permutations(n-1, k)
 	return big.NewInt(0).Sub(total_perms, n_minus_1_perms)
 }
 

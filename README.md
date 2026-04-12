@@ -4,38 +4,22 @@
 **Author: Nathan McIntosh**
 
 ## About
-Basic lazy combinatorics. It gives you the next combination/permutation when you call 
-`Next()`. Access the items with `Items()`.
+Lazy combinatorics using Go 1.23+ iterators. Each iterator's `All()` method returns an `iter.Seq2[[]int, []T]`, yielding freshly allocated index and item slices on each iteration.
 
-This library has been updated to use generics. If you require a version of go 
-<1.18, please use version 0.2.0 of this library.
-
-## Update about iterators added in go 1.23
-With the addition of [iterators](https://tip.golang.org/doc/go1.23#iterators) added in go 1.23, this package could definitely use a refactor to use them. If I have time, I will try to add this, but until then, it still uses an older method of iterating, namely calling the `Next()` method to step forward.
+Uses Go 1.18 generics. No external dependencies beyond the standard library.
 
 ## On Offer:
 - [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
 
-Each of the above structs meets the interface (but the interface is not actually used anywhere)
-```go
-type CombinationLike[T any] interface {
-	Next() bool
-	LenInds() int
-	Indices() []int
-	Items() []T
-}
-```
-- `Next()` is what you use to iterate forward
-- `Items()` will return a slice of the items in this combination/permutation. Note that this buffer is re-used every iteration. If you require the results of every iteration, make a copy of the slice returned by `Items()` every iteration.
-- `LenInds()` tells you how long the indices slice is (you could also get this from `len(c.Indices()))`
-- `Indices()` gives you the slice containing the indices of the items for this iteration
-
+Each type provides an `All()` method that returns an `iter.Seq2[[]int, []T]`. Use it with a `for range` loop to iterate over all combinations/permutations. Each iteration yields two values:
+- The indices into the original data
+- The corresponding items
 
 ---
 ## How to use:
-Say you have a slice of strings: `["apple, "banana", "cherry"]` and you want to get all the combinations of 2 strings:
+Say you have a slice of strings: `["apple", "banana", "cherry"]` and you want to get all the combinations of 2 strings:
 1. `["apple", "banana"]`
 1. `["apple", "cherry"]`
 1. `["banana", "cherry"]`
@@ -56,9 +40,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for c.Next() {
-		// Do something with this combination
-		fmt.Println(c.Items())
+	for indices, items := range c.All() {
+		fmt.Println(indices, items)
 	}
 }
 ```
@@ -93,21 +76,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
-	// Now iterate over the combinations with replacement
-	for combos.Next() {
-		fmt.Println(combos.Items())
+
+	for _, items := range combos.All() {
+		fmt.Println(items)
 	}
 }
 ```
 
 ---
 ## How is this library tested?
-There are a few basic test, including one testing a combination of length 1,313,400, one
+There are a few basic tests, including one testing a combination of length 1,313,400, one
 testing a combination with replacement of length 11,628, one testing a permutation of
 length 970,200.
 
 The file `property_test.go` also performs some basic property testing (do we see the
 number of elements we expect to) on 100 random inputs to combinations/combinations with
 replacement/permutations every time `go test` is run.
-

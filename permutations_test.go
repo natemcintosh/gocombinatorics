@@ -143,18 +143,13 @@ func TestPermutationsNext(t *testing.T) {
 				t.Errorf("NewPermutation() = %v, want %v", err, nil)
 			}
 			got := make([][]int, 0)
-
-			for permutations.Next() {
-				// We need to append a copy of permutations.Indices() to got
-				next_set_of_indices := make([]int, len(permutations.Indices()))
-				copy(next_set_of_indices, permutations.Indices())
-				got = append(got, next_set_of_indices)
+			for inds := range permutations.All() {
+				got = append(got, inds)
 			}
 
 			if !reflect.DeepEqual(got, tC.want) {
 				t.Errorf("Permutations(%d, %d) = %v, want %v", tC.n, tC.k, got, tC.want)
 			}
-
 		})
 	}
 }
@@ -166,15 +161,16 @@ func TestPermutationsItems(t *testing.T) {
 		t.Fatalf("NewPermutations() error: %v", err)
 	}
 
-	p.Next()
-	items := p.Items()
+	// Get the first permutation
+	for _, items := range p.All() {
+		if len(items) != 2 {
+			t.Errorf("len(Items()) = %d, want 2", len(items))
+		}
 
-	if len(items) != 2 {
-		t.Errorf("len(Items()) = %d, want 2", len(items))
-	}
-
-	want := []string{"a", "b"}
-	if !reflect.DeepEqual(items, want) {
-		t.Errorf("Items() = %v, want %v", items, want)
+		want := []string{"a", "b"}
+		if !reflect.DeepEqual(items, want) {
+			t.Errorf("Items() = %v, want %v", items, want)
+		}
+		break // only check the first permutation
 	}
 }

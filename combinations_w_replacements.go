@@ -2,101 +2,82 @@ package gocombinatorics
 
 import (
 	"errors"
+	"iter"
 	"math/big"
+	"slices"
 )
 
-// CombinationsWithReplacement will give you the indices of all possible combinations
-// with replacement of an input slice/array of length n, choosing k elements.
+// CombinationsWithReplacement generates all combinations with replacement
+// of k elements from the input data. Use NewCombinationsWithReplacement
+// to create one, then iterate with All().
 type CombinationsWithReplacement[T any] struct {
-	data    []T
-	n, k    int
-	Length  *big.Int
-	inds    []int
-	isfirst bool
-	buffer  []T
+	data   []T
+	n, k   int
+	Length *big.Int
 }
 
-// NewCombinationsWithReplacement creates a new instance of CombinationsWithReplacement
+// NewCombinationsWithReplacement creates a new CombinationsWithReplacement iterator.
 func NewCombinationsWithReplacement[T any](input_data []T, k int) (*CombinationsWithReplacement[T], error) {
 	data := make([]T, len(input_data))
 	copy(data, input_data)
 	n := len(input_data)
 
-	// Check for cases where we can't do combinations with replacement
 	if n <= 0 {
 		return nil, errors.New("len(input_data) must be greater than 0")
 	} else if k <= 0 {
 		return nil, errors.New("k must be greater than 0")
 	}
 
-	len := num_combinations_w_replacement(n, k)
-	inds := make([]int, k)
-	isfirst := true
-
-	// Create the buffer
-	buffer := make([]T, k)
-	fill_buffer(buffer, data, inds)
+	Length := num_combinations_w_replacement(n, k)
 
 	return &CombinationsWithReplacement[T]{
-		data:    data,
-		n:       n,
-		k:       k,
-		Length:  len,
-		inds:    inds,
-		isfirst: isfirst,
-		buffer:  buffer,
+		data:   data,
+		n:      n,
+		k:      k,
+		Length: Length,
 	}, nil
 }
 
-// Next returns the next combination of indices until the end, and then returns false.
-// This code was copied as much as possible from the python documentation itertools.combinations_with_replacement
+// All returns an iterator over all combinations with replacement. Each
+// iteration yields a freshly allocated indices slice and items slice.
+// This code follows the algorithm from Python's itertools.combinations_with_replacement
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
-func (c *CombinationsWithReplacement[T]) Next() bool {
-	// If it's the first combo, the indices are all 0
-	if c.isfirst {
-		for i := 0; i < c.k; i++ {
-			c.inds[i] = 0
+func (c *CombinationsWithReplacement[T]) All() iter.Seq2[[]int, []T] {
+	return func(yield func([]int, []T) bool) {
+		inds := make([]int, c.k)
+
+		if !yield(slices.Clone(inds), c.items(inds)) {
+			return
 		}
-		c.isfirst = false
-		return true
-	}
 
-	what_is_i := -1
-	// Go over the indices from (k-1) to 0 in reverse order
-	for i := c.k - 1; i >= 0; i-- {
-		if c.inds[i] != c.n-1 {
-			what_is_i = i
-			break
-		} else if i == 0 {
-			return false
+		for {
+			what_is_i := -1
+			for i := c.k - 1; i >= 0; i-- {
+				if inds[i] != c.n-1 {
+					what_is_i = i
+					break
+				} else if i == 0 {
+					return
+				}
+			}
+			new_val := inds[what_is_i] + 1
+			for i := what_is_i; i < c.k; i++ {
+				inds[i] = new_val
+			}
+			if !yield(slices.Clone(inds), c.items(inds)) {
+				return
+			}
 		}
 	}
-	// This for loop mimics the python list slice
-	new_val := c.inds[what_is_i] + 1
-	for i := what_is_i; i < c.k; i++ {
-		c.inds[i] = new_val
+}
+
+// items builds a fresh slice of items at the given indices.
+func (c *CombinationsWithReplacement[T]) items(inds []int) []T {
+	result := make([]T, len(inds))
+	for i, idx := range inds {
+		result[i] = c.data[idx]
 	}
-	return true
-}
-
-func (c *CombinationsWithReplacement[T]) LenInds() int {
-	return c.k
-}
-
-// Indices returns the current combination indices. The returned slice is
-// shared with the iterator's internal state and will be overwritten on the
-// next call to Next(). Copy it if you need to keep it.
-func (c *CombinationsWithReplacement[T]) Indices() []int {
-	return c.inds
-}
-
-// Items is how you get the items in this combination. You iterate with `c.Next()`, and
-// then get the combination with `c.Items()`. The data in the slice returned will be
-// overwritten every iteration. If you need to keep the data from each iteration, be
-// sure to make a copy.
-func (c *CombinationsWithReplacement[T]) Items() []T {
-	fill_buffer(c.buffer, c.data, c.inds)
-	return c.buffer
+	return result
 }
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)

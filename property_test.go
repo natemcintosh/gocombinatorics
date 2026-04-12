@@ -11,35 +11,22 @@ package gocombinatorics
 
 import (
 	"fmt"
+	"iter"
 	"math/big"
 	"math/rand"
 	"testing"
 )
 
-// Multiple types all adhere to this interface
-type combinationLike interface {
-	Next() bool
-	LenInds() int
-	Indices() []int
-}
-
-// combinationLikeValueCounter will iterate through something combination like and count
-// each unique value, returning it in a map.
-// It assumes that the combinationLike has already been created
-func combinationLikeValueCounter(c combinationLike) map[int]int {
-	// Make the result map
-	result := make(map[int]int, c.LenInds())
-
-	// Iterate through the object
-	for c.Next() {
-		// Add each item in c.Inds to the result map
-		for _, num := range c.Indices() {
-			result[num]++
+// indexCounter iterates through a Seq2 iterator, counting how many times each index
+// appears across all yielded index slices.
+func indexCounter[T any](seq iter.Seq2[[]int, []T]) map[int]int {
+	result := make(map[int]int)
+	for inds := range seq {
+		for _, idx := range inds {
+			result[idx]++
 		}
 	}
-
 	return result
-
 }
 
 func TestCombinationsProperties(t *testing.T) {
@@ -76,17 +63,14 @@ func TestCombinationsProperties(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			// Create the combination
 			data := stepped_range(0, tC.n, 1)
 			c, err := NewCombinations(data, tC.k)
 			if err != nil {
 				t.Errorf("Error creating combinations: %v", err)
 			}
 
-			// Count the number of times each item appears
-			counts := combinationLikeValueCounter(c)
+			counts := indexCounter(c.All())
 
-			// Check that each value in counts appears t.num_want_to_see times
 			for num, count := range counts {
 				if count != tC.num_want_to_see {
 					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, tC.num_want_to_see, count)
@@ -114,17 +98,14 @@ func Test100RandomCombinations(t *testing.T) {
 
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
-			// Create the combination
 			data := stepped_range(0, int(n), 1)
 			c, err := NewCombinations(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating combinations: %v", err)
 			}
 
-			// Count the number of times each item appears
-			counts := combinationLikeValueCounter(c)
+			counts := indexCounter(c.All())
 
-			// Check that each value in counts appears t.num_want_to_see times
 			for num, count := range counts {
 				count_big := big.NewInt(int64(count))
 				if count_big.Cmp(times_we_see_each_index) != 0 {
@@ -152,17 +133,14 @@ func Test100RandomCombinationsWithReplacement(t *testing.T) {
 
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
-			// Create the combination
 			data := stepped_range(0, int(n), 1)
 			c, err := NewCombinationsWithReplacement(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating CombinationsWithReplacement: %v", err)
 			}
 
-			// Count the number of times each item appears
-			counts := combinationLikeValueCounter(c)
+			counts := indexCounter(c.All())
 
-			// Check that each value in counts appears t.num_want_to_see times
 			for num, count := range counts {
 				count_big := big.NewInt(int64(count))
 				if count_big.Cmp(times_we_see_each_index) != 0 {
@@ -191,16 +169,13 @@ func Test100RandomPermutations(t *testing.T) {
 
 		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
 		t.Run(run_name, func(t *testing.T) {
-			// Create the permutation
 			p, err := NewPermutations(data, int(k))
 			if err != nil {
 				t.Errorf("Error creating Permutations: %v", err)
 			}
 
-			// Count the number of times each item appears
-			var counts map[int]int = combinationLikeValueCounter(p)
+			counts := indexCounter(p.All())
 
-			// Check that each value in counts appears t.num_want_to_see times
 			for num, count := range counts {
 				count_big := big.NewInt(int64(count))
 				if count_big.Cmp(times_we_see_each_index) != 0 {

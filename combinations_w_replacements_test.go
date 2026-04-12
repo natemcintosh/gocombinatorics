@@ -99,16 +99,13 @@ func TestCombinationsWithReplacementNew(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			data := stepped_range(0, tC.n, 1)
-			combinations_w_replacement, err := NewCombinationsWithReplacement(data, tC.k)
+			cwr, err := NewCombinationsWithReplacement(data, tC.k)
 			if err != nil {
 				t.Errorf("NewCombinationsWithReplacement(%d, %d) = %v, want nil", tC.n, tC.k, err)
 			}
 			got := make([][]int, 0)
-			for combinations_w_replacement.Next() {
-				// We need to append a copy of combinations.Inds to got
-				next_set_of_indices := make([]int, len(combinations_w_replacement.inds))
-				copy(next_set_of_indices, combinations_w_replacement.inds)
-				got = append(got, next_set_of_indices)
+			for inds := range cwr.All() {
+				got = append(got, inds)
 			}
 
 			if !reflect.DeepEqual(got, tC.want) {
@@ -160,12 +157,11 @@ func BenchmarkCombinationsWithReplacementNext(b *testing.B) {
 		b.Run(bm.desc, func(b *testing.B) {
 			for b.Loop() {
 				data := stepped_range(0, bm.n, 1)
-				combinations_w_replacement, err := NewCombinationsWithReplacement(data, bm.k)
+				cwr, err := NewCombinationsWithReplacement(data, bm.k)
 				if err != nil {
-					b.Errorf("NewCombinations(%d, %d) = %v, want nil", bm.n, bm.k, err)
+					b.Errorf("NewCombinationsWithReplacement(%d, %d) = %v, want nil", bm.n, bm.k, err)
 				}
-				for combinations_w_replacement.Next() {
-
+				for range cwr.All() {
 				}
 			}
 		})

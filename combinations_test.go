@@ -309,11 +309,8 @@ func TestCombinationsNext(t *testing.T) {
 				t.Errorf("NewCombinations(%d, %d) = %v, want nil", tC.n, tC.k, err)
 			}
 			got := make([][]int, 0)
-			for combinations.Next() {
-				// We need to append a copy of combinations.Inds to got
-				next_set_of_indices := make([]int, len(combinations.inds))
-				copy(next_set_of_indices, combinations.Indices())
-				got = append(got, next_set_of_indices)
+			for inds := range combinations.All() {
+				got = append(got, inds)
 			}
 
 			if !reflect.DeepEqual(got, tC.want) {
@@ -708,22 +705,17 @@ func TestCombinationsNextString(t *testing.T) {
 				t.Errorf("NewCombinations(%v, %d) = %v, want nil", tC.data, tC.k, err)
 			}
 
-			want_idx := -1
-			for combinations.Next() {
-				// Increment `want_idx`
-				want_idx += 1
-
-				// Compare this set of items with what we want
-				these_items := make([]string, combinations.LenInds())
-				copy(these_items, combinations.Items())
-				if !reflect.DeepEqual(these_items, tC.want[want_idx]) {
+			want_idx := 0
+			for _, items := range combinations.All() {
+				if !reflect.DeepEqual(items, tC.want[want_idx]) {
 					t.Errorf(
 						"Combinations iteration %d mismatch: got %v; want %v",
 						want_idx,
-						these_items,
+						items,
 						tC.want[want_idx],
 					)
 				}
+				want_idx++
 			}
 		})
 	}
@@ -764,7 +756,7 @@ func BenchmarkCombinationsNextString(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
-				for combinations.Next() {
+				for range combinations.All() {
 				}
 			}
 		})
@@ -817,8 +809,7 @@ func BenchmarkCombinationsNext(b *testing.B) {
 				if err != nil {
 					b.Errorf("NewCombinations(%d, %d) = %v, want nil", bm.n, bm.k, err)
 				}
-				for combinations.Next() {
-
+				for range combinations.All() {
 				}
 			}
 		})
