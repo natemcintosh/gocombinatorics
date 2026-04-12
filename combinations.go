@@ -45,30 +45,8 @@ func NewCombinations[T any](input_data []T, k int) (*Combinations[T], error) {
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations)
 func (c *Combinations[T]) All() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
-		inds := make([]int, c.k)
-		for i := range c.k {
-			inds[i] = i
-		}
-
-		if !yield(slices.Clone(inds), c.items(inds)) {
-			return
-		}
-
-		for {
-			what_is_i := -1
-			for i := c.k - 1; i >= 0; i-- {
-				if inds[i] != i+c.n-c.k {
-					what_is_i = i
-					break
-				} else if i == 0 {
-					return
-				}
-			}
-			inds[what_is_i]++
-			for j := what_is_i + 1; j < c.k; j++ {
-				inds[j] = inds[j-1] + 1
-			}
-			if !yield(slices.Clone(inds), c.items(inds)) {
+		for inds, items := range c.AllBorrowed() {
+			if !yield(slices.Clone(inds), slices.Clone(items)) {
 				return
 			}
 		}
@@ -87,7 +65,7 @@ func (c *Combinations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 			inds[i] = i
 		}
 
-		c.fillBuf(buf, inds)
+		fillBuf(buf, c.data, inds)
 		if !yield(inds, buf) {
 			return
 		}
@@ -106,7 +84,7 @@ func (c *Combinations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 			for j := what_is_i + 1; j < c.k; j++ {
 				inds[j] = inds[j-1] + 1
 			}
-			c.fillBuf(buf, inds)
+			fillBuf(buf, c.data, inds)
 			if !yield(inds, buf) {
 				return
 			}
@@ -114,21 +92,6 @@ func (c *Combinations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	}
 }
 
-// items builds a fresh slice of items at the given indices.
-func (c *Combinations[T]) items(inds []int) []T {
-	result := make([]T, len(inds))
-	for i, idx := range inds {
-		result[i] = c.data[idx]
-	}
-	return result
-}
-
-// fillBuf writes items from data at the given indices into buf.
-func (c *Combinations[T]) fillBuf(buf []T, inds []int) {
-	for i, idx := range inds {
-		buf[i] = c.data[idx]
-	}
-}
 
 // nchoosek returns the number of combinations of n things taken k at a time.
 // nchoosek(n, k) = n! / (k! * (n-k)!) if n > k

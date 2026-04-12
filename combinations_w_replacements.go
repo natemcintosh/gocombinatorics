@@ -44,27 +44,8 @@ func NewCombinationsWithReplacement[T any](input_data []T, k int) (*Combinations
 // (https://docs.python.org/3/library/itertools.html#itertools.combinations_with_replacement)
 func (c *CombinationsWithReplacement[T]) All() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
-		inds := make([]int, c.k)
-
-		if !yield(slices.Clone(inds), c.items(inds)) {
-			return
-		}
-
-		for {
-			what_is_i := -1
-			for i := c.k - 1; i >= 0; i-- {
-				if inds[i] != c.n-1 {
-					what_is_i = i
-					break
-				} else if i == 0 {
-					return
-				}
-			}
-			new_val := inds[what_is_i] + 1
-			for i := what_is_i; i < c.k; i++ {
-				inds[i] = new_val
-			}
-			if !yield(slices.Clone(inds), c.items(inds)) {
+		for inds, items := range c.AllBorrowed() {
+			if !yield(slices.Clone(inds), slices.Clone(items)) {
 				return
 			}
 		}
@@ -80,7 +61,7 @@ func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 		inds := make([]int, c.k)
 		buf := make([]T, c.k)
 
-		c.fillBuf(buf, inds)
+		fillBuf(buf, c.data, inds)
 		if !yield(inds, buf) {
 			return
 		}
@@ -99,7 +80,7 @@ func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 			for i := what_is_i; i < c.k; i++ {
 				inds[i] = new_val
 			}
-			c.fillBuf(buf, inds)
+			fillBuf(buf, c.data, inds)
 			if !yield(inds, buf) {
 				return
 			}
@@ -107,21 +88,6 @@ func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	}
 }
 
-// items builds a fresh slice of items at the given indices.
-func (c *CombinationsWithReplacement[T]) items(inds []int) []T {
-	result := make([]T, len(inds))
-	for i, idx := range inds {
-		result[i] = c.data[idx]
-	}
-	return result
-}
-
-// fillBuf writes items from data at the given indices into buf.
-func (c *CombinationsWithReplacement[T]) fillBuf(buf []T, inds []int) {
-	for i, idx := range inds {
-		buf[i] = c.data[idx]
-	}
-}
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
 func num_combinations_w_replacement(n, k int) *big.Int {
