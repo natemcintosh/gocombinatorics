@@ -13,9 +13,9 @@ Uses Go 1.18 generics. No external dependencies beyond the standard library.
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
 
-Each type provides an `All()` method that returns an `iter.Seq2[[]int, []T]`. Use it with a `for range` loop to iterate over all combinations/permutations. Each iteration yields two values:
-- The indices into the original data
-- The corresponding items
+Each type provides two iteration methods, both returning `iter.Seq2[[]int, []T]`:
+- **`All()`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
+- **`AllBorrowed()`** — yields shared internal buffers, overwritten each iteration. Much faster (see benchmarks below), but callers must not retain or modify the yielded slices.
 
 ---
 ## How to use:
@@ -82,6 +82,38 @@ func main() {
 	}
 }
 ```
+
+---
+## Low-Allocation Iteration with `AllBorrowed()`
+
+`AllBorrowed()` reuses internal buffers instead of allocating fresh slices each iteration. Use it when you process each combination/permutation inline without storing it:
+
+```go
+c, _ := combo.NewCombinations(myData, 3)
+
+// Fast path: process each combination without retaining it
+for indices, items := range c.AllBorrowed() {
+    // Use indices and items here, but do NOT store them —
+    // they will be overwritten on the next iteration.
+    fmt.Println(indices, items)
+}
+```
+
+If you need to collect results, use `All()` instead (or copy the slices yourself).
+
+### Benchmarks
+
+Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration; `AllBorrowed()` allocates a constant 2-3 slices total.
+
+| Type | (n, k) | Iterations | `All()` allocs | `AllBorrowed()` allocs | Speedup |
+|------|--------|-----------|---------------|----------------------|---------|
+| Combinations | (10, 3) | 120 | 244 | 5 | ~6.5x |
+| Combinations | (200, 3) | 1,313,400 | 2,626,804 | 5 | ~7.7x |
+| Combinations | (26, 12) | 9,657,700 | 19,315,475 | 5 | ~5.5x |
+| CombinationsWR | (10, 3) | 220 | 444 | 5 | ~6.4x |
+| CombinationsWR | (15, 5) | 11,628 | 23,260 | 5 | ~7.4x |
+| Permutations | (10, 3) | 720 | 1,445 | 6 | ~8.2x |
+| Permutations | (10, 8) | 1,814,400 | 3,628,814 | 6 | ~6.7x |
 
 ---
 ## How is this library tested?
