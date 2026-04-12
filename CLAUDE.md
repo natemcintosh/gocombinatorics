@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 go test ./...          # run all tests (includes randomized property tests)
 go test -run TestName  # run a single test by name
 go build ./...         # build
+gh issue               # for interacting with GitHub issues
 ```
 
 There is no linter configured. No external dependencies beyond the standard library.

@@ -158,7 +158,7 @@ func BenchmarkCombinationsWithReplacementNext(b *testing.B) {
 
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				data := stepped_range(0, bm.n, 1)
 				combinations_w_replacement, err := NewCombinationsWithReplacement(data, bm.k)
 				if err != nil {
@@ -168,7 +168,6 @@ func BenchmarkCombinationsWithReplacementNext(b *testing.B) {
 
 				}
 			}
-
 		})
 	}
 }

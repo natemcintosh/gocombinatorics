@@ -758,16 +758,15 @@ func BenchmarkCombinationsNextString(b *testing.B) {
 	}
 
 	for _, bm := range benchmarks {
-		combinations, err := NewCombinations(bm.data, bm.k)
-		if err != nil {
-			b.Errorf("Error creating NewCombinations: %v", err)
-		}
 		b.Run(bm.desc, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
+				combinations, err := NewCombinations(bm.data, bm.k)
+				if err != nil {
+					b.Fatal(err)
+				}
 				for combinations.Next() {
 				}
 			}
-
 		})
 	}
 }
@@ -812,7 +811,7 @@ func BenchmarkCombinationsNext(b *testing.B) {
 
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				data := stepped_range(0, bm.n, 1)
 				combinations, err := NewCombinations(data, bm.k)
 				if err != nil {
@@ -822,7 +821,6 @@ func BenchmarkCombinationsNext(b *testing.B) {
 
 				}
 			}
-
 		})
 	}
 }
@@ -898,10 +896,9 @@ func BenchmarkFactorial(b *testing.B) {
 
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				factorial(bm.in)
 			}
-
 		})
 	}
 }
@@ -1055,10 +1052,9 @@ func BenchmarkNChooseK(b *testing.B) {
 
 	for _, bm := range benchmarks {
 		b.Run(bm.desc, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				nchoosek(bm.n, bm.k)
 			}
-
 		})
 	}
 }
