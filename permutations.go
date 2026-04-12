@@ -76,6 +76,52 @@ func (p *Permutations[T]) All() iter.Seq2[[]int, []T] {
 	}
 }
 
+// AllBorrowed returns an iterator like All, but reuses internal buffers.
+// Each iteration yields the same underlying index and item slices, overwritten
+// in place. The caller must not retain or modify the yielded slices across
+// iterations. Use All() if you need to store results.
+func (p *Permutations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
+	return func(yield func([]int, []T) bool) {
+		inds := make([]int, p.n)
+		for i := range p.n {
+			inds[i] = i
+		}
+		cycles := stepped_range(p.n, p.n-p.k, -1)
+		buf := make([]T, p.k)
+
+		p.fillBuf(buf, inds[:p.k])
+		if !yield(inds[:p.k], buf) {
+			return
+		}
+
+		for {
+			found := false
+			for i := p.k - 1; i >= 0; i-- {
+				cycles[i]--
+				if cycles[i] == 0 {
+					// Rotate element at i to the end
+					ith := inds[i]
+					inds = append(inds[:i], inds[i+1:]...)
+					inds = append(inds, ith)
+					cycles[i] = p.n - i
+				} else {
+					j := cycles[i]
+					inds[i], inds[len(inds)-j] = inds[len(inds)-j], inds[i]
+					p.fillBuf(buf, inds[:p.k])
+					if !yield(inds[:p.k], buf) {
+						return
+					}
+					found = true
+					break
+				}
+			}
+			if !found {
+				return
+			}
+		}
+	}
+}
+
 // items builds a fresh slice of items at the given indices.
 func (p *Permutations[T]) items(inds []int) []T {
 	result := make([]T, len(inds))
@@ -83,6 +129,13 @@ func (p *Permutations[T]) items(inds []int) []T {
 		result[i] = p.data[idx]
 	}
 	return result
+}
+
+// fillBuf writes items from data at the given indices into buf.
+func (p *Permutations[T]) fillBuf(buf []T, inds []int) {
+	for i, idx := range inds {
+		buf[i] = p.data[idx]
+	}
 }
 
 func n_permutations(n, k int) *big.Int {

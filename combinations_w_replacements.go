@@ -71,6 +71,42 @@ func (c *CombinationsWithReplacement[T]) All() iter.Seq2[[]int, []T] {
 	}
 }
 
+// AllBorrowed returns an iterator like All, but reuses internal buffers.
+// Each iteration yields the same underlying index and item slices, overwritten
+// in place. The caller must not retain or modify the yielded slices across
+// iterations. Use All() if you need to store results.
+func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
+	return func(yield func([]int, []T) bool) {
+		inds := make([]int, c.k)
+		buf := make([]T, c.k)
+
+		c.fillBuf(buf, inds)
+		if !yield(inds, buf) {
+			return
+		}
+
+		for {
+			what_is_i := -1
+			for i := c.k - 1; i >= 0; i-- {
+				if inds[i] != c.n-1 {
+					what_is_i = i
+					break
+				} else if i == 0 {
+					return
+				}
+			}
+			new_val := inds[what_is_i] + 1
+			for i := what_is_i; i < c.k; i++ {
+				inds[i] = new_val
+			}
+			c.fillBuf(buf, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
+
 // items builds a fresh slice of items at the given indices.
 func (c *CombinationsWithReplacement[T]) items(inds []int) []T {
 	result := make([]T, len(inds))
@@ -78,6 +114,13 @@ func (c *CombinationsWithReplacement[T]) items(inds []int) []T {
 		result[i] = c.data[idx]
 	}
 	return result
+}
+
+// fillBuf writes items from data at the given indices into buf.
+func (c *CombinationsWithReplacement[T]) fillBuf(buf []T, inds []int) {
+	for i, idx := range inds {
+		buf[i] = c.data[idx]
+	}
 }
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)

@@ -152,6 +152,70 @@ func Test100RandomCombinationsWithReplacement(t *testing.T) {
 
 }
 
+func Test100RandomCombinationsBorrowed(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		n := rand.Int63n(50) + 1
+		k := rand.Int63n(n) + 1
+
+		total_times := nchoosek(uint64(n), uint64(k))
+		one_less := nchoosek(uint64(n-1), uint64(k))
+		times_we_see_each_index := big.NewInt(0).Sub(total_times, one_less)
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			c, err := NewCombinations(data, int(k))
+			if err != nil {
+				t.Errorf("Error creating combinations: %v", err)
+			}
+
+			counts := indexCounter(c.AllBorrowed())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
+func Test100RandomCombinationsWithReplacementBorrowed(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		n := rand.Int63n(15) + 1
+		k := rand.Int63n(n) + 1
+
+		times_we_see_each_index := elts_in_combo_w_replacement(int(n), int(k))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			c, err := NewCombinationsWithReplacement(data, int(k))
+			if err != nil {
+				t.Errorf("Error creating CombinationsWithReplacement: %v", err)
+			}
+
+			counts := indexCounter(c.AllBorrowed())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
 func Test100RandomPermutations(t *testing.T) {
 	// Do 100 iterations
 	for i := 0; i < 100; i++ {
@@ -175,6 +239,37 @@ func Test100RandomPermutations(t *testing.T) {
 			}
 
 			counts := indexCounter(p.All())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
+func Test100RandomPermutationsBorrowed(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		n := rand.Int63n(15) + 1
+		k := rand.Int63n(n) + 1
+		data := stepped_range(0, int(n), 1)
+
+		times_we_see_each_index := elts_in_permutations(int(n), int(k))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			p, err := NewPermutations(data, int(k))
+			if err != nil {
+				t.Errorf("Error creating Permutations: %v", err)
+			}
+
+			counts := indexCounter(p.AllBorrowed())
 
 			for num, count := range counts {
 				count_big := big.NewInt(int64(count))

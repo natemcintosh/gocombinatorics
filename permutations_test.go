@@ -2,6 +2,8 @@ package gocombinatorics
 
 import (
 	"errors"
+	"fmt"
+	"math/big"
 	"reflect"
 	"testing"
 )
@@ -149,6 +151,118 @@ func TestPermutationsNext(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tC.want) {
 				t.Errorf("Permutations(%d, %d) = %v, want %v", tC.n, tC.k, got, tC.want)
+			}
+		})
+	}
+}
+
+func FuzzPermutationsAllBorrowedMatchesAll(f *testing.F) {
+	f.Add(2, 1)
+	f.Add(2, 2)
+	f.Add(5, 3)
+	f.Add(10, 3)
+	f.Fuzz(func(t *testing.T, n int, k int) {
+		if n <= 0 || k <= 0 || k > n || n > 50 {
+			t.Skip()
+		}
+		length := n_permutations(n, k)
+		if length.Cmp(big.NewInt(1_000_000)) > 0 {
+			t.Skip()
+		}
+
+		data := stepped_range(0, n, 1)
+		p, err := NewPermutations(data, k)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var allInds [][]int
+		for inds := range p.All() {
+			allInds = append(allInds, inds)
+		}
+
+		i := 0
+		for inds := range p.AllBorrowed() {
+			if i >= len(allInds) {
+				t.Fatalf("AllBorrowed yielded more items than All (%d)", len(allInds))
+			}
+			if !reflect.DeepEqual(inds, allInds[i]) {
+				t.Errorf("iteration %d: AllBorrowed=%v, All=%v", i, inds, allInds[i])
+			}
+			i++
+		}
+		if i != len(allInds) {
+			t.Errorf("AllBorrowed yielded %d items, All yielded %d", i, len(allInds))
+		}
+	})
+}
+
+func TestPermutationsAllBorrowedMatchesAll(t *testing.T) {
+	testCases := []struct {
+		n, k int
+	}{
+		{2, 1}, {2, 2}, {5, 3}, {10, 3},
+	}
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("n=%d,k=%d", tc.n, tc.k), func(t *testing.T) {
+			data := stepped_range(0, tc.n, 1)
+			p, err := NewPermutations(data, tc.k)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var allInds [][]int
+			var allItems [][]int
+			for inds, items := range p.All() {
+				allInds = append(allInds, inds)
+				allItems = append(allItems, items)
+			}
+
+			i := 0
+			for inds, items := range p.AllBorrowed() {
+				if !reflect.DeepEqual(inds, allInds[i]) {
+					t.Errorf("iteration %d indices: AllBorrowed=%v, All=%v", i, inds, allInds[i])
+				}
+				if !reflect.DeepEqual(items, allItems[i]) {
+					t.Errorf("iteration %d items: AllBorrowed=%v, All=%v", i, items, allItems[i])
+				}
+				i++
+			}
+			if i != len(allInds) {
+				t.Errorf("AllBorrowed yielded %d items, All yielded %d", i, len(allInds))
+			}
+		})
+	}
+}
+
+func BenchmarkPermutationsAllVsBorrowed(b *testing.B) {
+	benchmarks := []struct {
+		desc string
+		n    int
+		k    int
+	}{
+		{desc: "n=10,k=3", n: 10, k: 3},
+		{desc: "n=10,k=8", n: 10, k: 8},
+	}
+	for _, bm := range benchmarks {
+		data := stepped_range(0, bm.n, 1)
+		p, err := NewPermutations(data, bm.k)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		b.Run("All/"+bm.desc, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				for range p.All() {
+				}
+			}
+		})
+		b.Run("AllBorrowed/"+bm.desc, func(b *testing.B) {
+			b.ReportAllocs()
+			for b.Loop() {
+				for range p.AllBorrowed() {
+				}
 			}
 		})
 	}

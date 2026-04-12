@@ -75,6 +75,45 @@ func (c *Combinations[T]) All() iter.Seq2[[]int, []T] {
 	}
 }
 
+// AllBorrowed returns an iterator like All, but reuses internal buffers.
+// Each iteration yields the same underlying index and item slices, overwritten
+// in place. The caller must not retain or modify the yielded slices across
+// iterations. Use All() if you need to store results.
+func (c *Combinations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
+	return func(yield func([]int, []T) bool) {
+		inds := make([]int, c.k)
+		buf := make([]T, c.k)
+		for i := range c.k {
+			inds[i] = i
+		}
+
+		c.fillBuf(buf, inds)
+		if !yield(inds, buf) {
+			return
+		}
+
+		for {
+			what_is_i := -1
+			for i := c.k - 1; i >= 0; i-- {
+				if inds[i] != i+c.n-c.k {
+					what_is_i = i
+					break
+				} else if i == 0 {
+					return
+				}
+			}
+			inds[what_is_i]++
+			for j := what_is_i + 1; j < c.k; j++ {
+				inds[j] = inds[j-1] + 1
+			}
+			c.fillBuf(buf, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
+
 // items builds a fresh slice of items at the given indices.
 func (c *Combinations[T]) items(inds []int) []T {
 	result := make([]T, len(inds))
@@ -82,6 +121,13 @@ func (c *Combinations[T]) items(inds []int) []T {
 		result[i] = c.data[idx]
 	}
 	return result
+}
+
+// fillBuf writes items from data at the given indices into buf.
+func (c *Combinations[T]) fillBuf(buf []T, inds []int) {
+	for i, idx := range inds {
+		buf[i] = c.data[idx]
+	}
 }
 
 // nchoosek returns the number of combinations of n things taken k at a time.
