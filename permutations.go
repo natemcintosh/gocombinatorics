@@ -72,8 +72,8 @@ func (p *Permutations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 				if cycles[i] == 0 {
 					// Rotate element at i to the end
 					ith := inds[i]
-					inds = append(inds[:i], inds[i+1:]...)
-					inds = append(inds, ith)
+					copy(inds[i:], inds[i+1:])
+					inds[len(inds)-1] = ith
 					cycles[i] = p.n - i
 				} else {
 					j := cycles[i]
