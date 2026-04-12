@@ -132,7 +132,7 @@ func TestPermutationsNext(t *testing.T) {
 			desc: "n=100, k=3",
 			n:    100,
 			k:    3,
-			want: csv_to_2d_int_array("100_perm_3.csv"),
+			want: csv_to_2d_int_array("testdata/100_perm_3.csv"),
 		},
 	}
 	for _, tC := range testCases {

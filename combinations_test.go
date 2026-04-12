@@ -298,7 +298,7 @@ func TestCombinationsNext(t *testing.T) {
 			desc: "n = 200, k = 3",
 			n:    200,
 			k:    3,
-			want: csv_to_2d_int_array("200_combo_3.csv"),
+			want: csv_to_2d_int_array("testdata/200_combo_3.csv"),
 		},
 	}
 	for _, tC := range testCases {

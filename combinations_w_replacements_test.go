@@ -93,7 +93,7 @@ func TestCombinationsWithReplacementNew(t *testing.T) {
 			desc: "n = 15, k = 5",
 			n:    15,
 			k:    5,
-			want: csv_to_2d_int_array("15_combo_w_replacement_5.csv"),
+			want: csv_to_2d_int_array("testdata/15_combo_w_replacement_5.csv"),
 		},
 	}
 	for _, tC := range testCases {
