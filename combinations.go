@@ -104,17 +104,13 @@ func (c *Combinations[T]) Items() []T {
 
 // nchoosek returns the number of combinations of n things taken k at a time.
 // nchoosek(n, k) = n! / (k! * (n-k)!) if n > k
-// nchoosek(n, k) = 0 if n < k
-// nchoosek(n, k) = 1 if n == k
-// nchoosek(n, k) = 0 if n <= 0 or k <= 0
+// nchoosek(n, k) = 0 if k > n
+// nchoosek(n, k) = 1 if k == 0 or k == n
 func nchoosek(n, k uint64) *big.Int {
-	if n <= 0 || k <= 0 {
+	if k > n {
 		return big.NewInt(0)
-	} else if k > n {
-		// nchoosek(n, k) = 0 if n < k
-		return big.NewInt(0)
-	} else if k == n {
-		// nchoosek(n, k) = 1 if n == k
+	}
+	if k == 0 || k == n {
 		return big.NewInt(1)
 	}
 	// Calculate the numerator

@@ -970,7 +970,19 @@ func TestNChooseK(t *testing.T) {
 			desc: "0 choose 0",
 			n:    0,
 			k:    0,
-			want: big.NewInt(0),
+			want: big.NewInt(1),
+		},
+		{
+			desc: "5 choose 0",
+			n:    5,
+			k:    0,
+			want: big.NewInt(1),
+		},
+		{
+			desc: "1 choose 0",
+			n:    1,
+			k:    0,
+			want: big.NewInt(1),
 		},
 	}
 	for _, tC := range testCases {
