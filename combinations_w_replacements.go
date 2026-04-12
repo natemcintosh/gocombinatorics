@@ -88,7 +88,6 @@ func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	}
 }
 
-
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
 func num_combinations_w_replacement(n, k int) *big.Int {
 	numerator := factorial(int64(n + k - 1))

@@ -3,7 +3,6 @@ package gocombinatorics
 import (
 	"errors"
 	"fmt"
-	"math/big"
 	"reflect"
 	"testing"
 )
@@ -115,47 +114,6 @@ func TestCombinationsWithReplacementNew(t *testing.T) {
 			}
 		})
 	}
-}
-
-func FuzzCWRAllBorrowedMatchesAll(f *testing.F) {
-	f.Add(3, 2)
-	f.Add(3, 3)
-	f.Add(5, 1)
-	f.Add(10, 3)
-	f.Fuzz(func(t *testing.T, n int, k int) {
-		if n <= 0 || k <= 0 || n > 50 || k > 50 {
-			t.Skip()
-		}
-		length := num_combinations_w_replacement(n, k)
-		if length.Cmp(big.NewInt(1_000_000)) > 0 {
-			t.Skip()
-		}
-
-		data := stepped_range(0, n, 1)
-		c, err := NewCombinationsWithReplacement(data, k)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		var allInds [][]int
-		for inds := range c.All() {
-			allInds = append(allInds, inds)
-		}
-
-		i := 0
-		for inds := range c.AllBorrowed() {
-			if i >= len(allInds) {
-				t.Fatalf("AllBorrowed yielded more items than All (%d)", len(allInds))
-			}
-			if !reflect.DeepEqual(inds, allInds[i]) {
-				t.Errorf("iteration %d: AllBorrowed=%v, All=%v", i, inds, allInds[i])
-			}
-			i++
-		}
-		if i != len(allInds) {
-			t.Errorf("AllBorrowed yielded %d items, All yielded %d", i, len(allInds))
-		}
-	})
 }
 
 func TestCWRAllBorrowedMatchesAll(t *testing.T) {

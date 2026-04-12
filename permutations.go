@@ -93,7 +93,6 @@ func (p *Permutations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	}
 }
 
-
 func n_permutations(n, k int) *big.Int {
 	numerator := factorial(int64(n))
 	denominator := factorial(int64(n - k))

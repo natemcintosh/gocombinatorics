@@ -92,7 +92,6 @@ func (c *Combinations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	}
 }
 
-
 // nchoosek returns the number of combinations of n things taken k at a time.
 // nchoosek(n, k) = n! / (k! * (n-k)!) if n > k
 // nchoosek(n, k) = 0 if k > n
