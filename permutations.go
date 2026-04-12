@@ -98,7 +98,9 @@ func (p *Permutations[T]) Next() bool {
 	return false
 }
 
-// Indices tells you the current indices used to get this permutation
+// Indices returns the current permutation indices. The returned slice is
+// shared with the iterator's internal state and will be overwritten on the
+// next call to Next(). Copy it if you need to keep it.
 func (p *Permutations[T]) Indices() []int {
 	return p.inds[:p.k]
 }

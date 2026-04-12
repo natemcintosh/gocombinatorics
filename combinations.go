@@ -86,6 +86,9 @@ func (c *Combinations[T]) LenInds() int {
 	return c.k
 }
 
+// Indices returns the current combination indices. The returned slice is
+// shared with the iterator's internal state and will be overwritten on the
+// next call to Next(). Copy it if you need to keep it.
 func (c *Combinations[T]) Indices() []int {
 	return c.inds
 }
