@@ -38,8 +38,8 @@ func NewPermutations[T any](input_data []T, k int) (*Permutations[T], error) {
 	isfirst := true
 
 	// The buffer slice
-	buffer := make([]T, len(inds))
-	fill_buffer(buffer, data, inds)
+	buffer := make([]T, k)
+	fill_buffer(buffer, data, inds[:k])
 
 	// Return the Permutations struct
 	return &Permutations[T]{
@@ -115,7 +115,7 @@ func (p *Permutations[T]) LenInds() int {
 // overwritten every iteration. If you need to keep the data from each iteration, be
 // sure to make a copy.
 func (p *Permutations[T]) Items() []T {
-	fill_buffer(p.buffer, p.data, p.inds)
+	fill_buffer(p.buffer, p.data, p.inds[:p.k])
 	return p.buffer
 }
 

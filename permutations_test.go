@@ -158,3 +158,23 @@ func TestPermutationsNext(t *testing.T) {
 		})
 	}
 }
+
+func TestPermutationsItems(t *testing.T) {
+	data := []string{"a", "b", "c", "d", "e"}
+	p, err := NewPermutations(data, 2)
+	if err != nil {
+		t.Fatalf("NewPermutations() error: %v", err)
+	}
+
+	p.Next()
+	items := p.Items()
+
+	if len(items) != 2 {
+		t.Errorf("len(Items()) = %d, want 2", len(items))
+	}
+
+	want := []string{"a", "b"}
+	if !reflect.DeepEqual(items, want) {
+		t.Errorf("Items() = %v, want %v", items, want)
+	}
+}
