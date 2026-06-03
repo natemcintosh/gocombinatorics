@@ -146,6 +146,8 @@ Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration. 
 | Powerset | (10, —) | 1,024 | 2,478 | 432 | ~3.9x |
 | Powerset | (16, —) | 65,536 | 132,144 | 1,074 | ~7.3x |
 
+For a whole-process, cross-language wall-clock comparison against Python's stdlib `itertools` and the Rust `itertools` crate (run with [hyperfine](https://github.com/sharkdp/hyperfine) via `just bench-compare`), see [`bench/RESULTS.md`](bench/RESULTS.md).
+
 ---
 ## How is this library tested?
 There are a few basic tests, including one testing a combination of length 1,313,400, one

@@ -22,6 +22,10 @@ fmt:
 bench name=".":
     go test -bench="{{name}}" -benchmem -run='^$' ./...
 
+# Build the Go/Python/Rust drivers and run the cross-language hyperfine comparison
+bench-compare:
+    ./bench/run.sh
+
 # Run a specific fuzz target (required); e.g. `just fuzz FuzzNewCombinations`
 fuzz target:
     go test -fuzz="{{target}}" ./...
