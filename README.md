@@ -20,6 +20,8 @@ Each type provides three iteration methods:
 - **`AllBorrowed() iter.Seq2[[]int, []T]`** — yields shared internal buffers, overwritten each iteration. Much faster (see benchmarks below), but callers must not retain or modify the yielded slices.
 - **`IndicesBorrowed() iter.Seq[[]int]`** — yields only the index slice and never gathers items. The fastest path when you need only the combinatorial structure — up to ~10× faster, and constant regardless of element size ([see below](#index-only-iteration-with-indicesborrowed)).
 
+Each type also exposes a `Length *big.Int` field, precomputed by its constructor, holding the total number of items the iterator will yield (e.g. `n choose k` for `Combinations`, `2^n` for `Powerset`). It's a `*big.Int` because these counts can overflow `uint64` for even moderate inputs.
+
 ---
 ## How to use:
 Say you have a slice of strings: `["apple", "banana", "cherry"]` and you want to get all the combinations of 2 strings:
@@ -196,5 +198,6 @@ testing a combination with replacement of length 11,628, one testing a permutati
 length 970,200.
 
 The file `property_test.go` also performs some basic property testing (do we see the
-number of elements we expect to) on 100 random inputs to combinations/combinations with
-replacement/permutations every time `go test` is run.
+number of elements we expect to) on 100 random inputs to each of the five iterator types
+— combinations, combinations with replacement, permutations, product, and powerset — and
+to their `AllBorrowed()` variants, every time `go test` is run.
