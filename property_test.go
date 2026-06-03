@@ -81,7 +81,7 @@ func TestCombinationsProperties(t *testing.T) {
 }
 
 func Test100RandomCombinations(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 
 		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
 		n := rand.Int63n(50) + 1
@@ -118,7 +118,7 @@ func Test100RandomCombinations(t *testing.T) {
 }
 
 func Test100RandomCombinationsWithReplacement(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 
 		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
 		n := rand.Int63n(15) + 1
@@ -153,7 +153,7 @@ func Test100RandomCombinationsWithReplacement(t *testing.T) {
 }
 
 func Test100RandomCombinationsBorrowed(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		n := rand.Int63n(50) + 1
 		k := rand.Int63n(n) + 1
 
@@ -186,7 +186,7 @@ func Test100RandomCombinationsBorrowed(t *testing.T) {
 }
 
 func Test100RandomCombinationsWithReplacementBorrowed(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		n := rand.Int63n(15) + 1
 		k := rand.Int63n(n) + 1
 
@@ -217,7 +217,7 @@ func Test100RandomCombinationsWithReplacementBorrowed(t *testing.T) {
 }
 
 func Test100RandomProduct(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		// 1 <= n <= 8, 1 <= k <= 6
 		n := rand.Int63n(8) + 1
 		k := rand.Int63n(6) + 1
@@ -249,7 +249,7 @@ func Test100RandomProduct(t *testing.T) {
 }
 
 func Test100RandomProductBorrowed(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		n := rand.Int63n(8) + 1
 		k := rand.Int63n(6) + 1
 
@@ -280,7 +280,7 @@ func Test100RandomProductBorrowed(t *testing.T) {
 }
 
 func Test100RandomPowerset(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		// 1 <= n <= 15
 		n := rand.Int63n(15) + 1
 
@@ -311,7 +311,7 @@ func Test100RandomPowerset(t *testing.T) {
 }
 
 func Test100RandomPowersetBorrowed(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		n := rand.Int63n(15) + 1
 
 		times_we_see_each_index := elts_in_powerset(int(n))
@@ -342,7 +342,7 @@ func Test100RandomPowersetBorrowed(t *testing.T) {
 
 func Test100RandomPermutations(t *testing.T) {
 	// Do 100 iterations
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		// Generate two numbers, 1 <= n <= 50, 1 <= k <= n
 		n := rand.Int63n(15) + 1
 		k := rand.Int63n(n) + 1
@@ -375,7 +375,7 @@ func Test100RandomPermutations(t *testing.T) {
 }
 
 func Test100RandomPermutationsBorrowed(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		n := rand.Int63n(15) + 1
 		k := rand.Int63n(n) + 1
 		data := stepped_range(0, int(n), 1)
