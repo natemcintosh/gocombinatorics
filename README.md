@@ -130,7 +130,7 @@ If you need to collect results, use `All()` instead (or copy the slices yourself
 
 ### Benchmarks
 
-Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration; `AllBorrowed()` allocates a constant 2-3 slices total.
+Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration. For the fixed-length iterators, `AllBorrowed()` allocates a constant handful of slices total. `Powerset` is the exception: it constructs a `Combinations` iterator per subset size, so its `AllBorrowed()` allocations grow linearly with `n` — still far below `All()`, but not constant.
 
 | Type | (n, k) | Iterations | `All()` allocs | `AllBorrowed()` allocs | Speedup |
 |------|--------|-----------|---------------|----------------------|---------|
@@ -141,6 +141,10 @@ Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration; 
 | CombinationsWR | (15, 5) | 11,628 | 23,260 | 5 | ~7.4x |
 | Permutations | (10, 3) | 720 | 1,445 | 6 | ~8.2x |
 | Permutations | (10, 8) | 1,814,400 | 3,628,814 | 6 | ~6.7x |
+| Product | (10, 3) | 1,000 | 2,005 | 5 | ~9.5x |
+| Product | (6, 6) | 46,656 | 93,317 | 5 | ~9.4x |
+| Powerset | (10, —) | 1,024 | 2,478 | 432 | ~3.9x |
+| Powerset | (16, —) | 65,536 | 132,144 | 1,074 | ~7.3x |
 
 ---
 ## How is this library tested?
