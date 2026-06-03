@@ -58,11 +58,25 @@ func (c *CombinationsWithReplacement[T]) All() iter.Seq2[[]int, []T] {
 // iterations. Use All() if you need to store results.
 func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
-		inds := make([]int, c.k)
 		buf := make([]T, c.k)
+		for inds := range c.IndicesBorrowed() {
+			fillBuf(buf, c.data, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
 
-		fillBuf(buf, c.data, inds)
-		if !yield(inds, buf) {
+// IndicesBorrowed yields the same index sequence as AllBorrowed, but never
+// gathers items into a []T. The yielded indices slice is reused (borrowed)
+// across iterations; clone it if you need to retain it. This is the fast path
+// for callers that only need the combinatorial structure, not the items.
+func (c *CombinationsWithReplacement[T]) IndicesBorrowed() iter.Seq[[]int] {
+	return func(yield func([]int) bool) {
+		inds := make([]int, c.k)
+
+		if !yield(inds) {
 			return
 		}
 
@@ -80,8 +94,7 @@ func (c *CombinationsWithReplacement[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 			for i := what_is_i; i < c.k; i++ {
 				inds[i] = new_val
 			}
-			fillBuf(buf, c.data, inds)
-			if !yield(inds, buf) {
+			if !yield(inds) {
 				return
 			}
 		}

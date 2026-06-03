@@ -60,11 +60,25 @@ func (p *Product[T]) All() iter.Seq2[[]int, []T] {
 // iterations. Use All() if you need to store results.
 func (p *Product[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
-		inds := make([]int, p.k)
 		buf := make([]T, p.k)
+		for inds := range p.IndicesBorrowed() {
+			fillBuf(buf, p.data, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
 
-		fillBuf(buf, p.data, inds)
-		if !yield(inds, buf) {
+// IndicesBorrowed yields the same index sequence as AllBorrowed, but never
+// gathers items into a []T. The yielded indices slice is reused (borrowed)
+// across iterations; clone it if you need to retain it. This is the fast path
+// for callers that only need the combinatorial structure, not the items.
+func (p *Product[T]) IndicesBorrowed() iter.Seq[[]int] {
+	return func(yield func([]int) bool) {
+		inds := make([]int, p.k)
+
+		if !yield(inds) {
 			return
 		}
 
@@ -79,8 +93,7 @@ func (p *Product[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 				return
 			}
 			inds[i]++
-			fillBuf(buf, p.data, inds)
-			if !yield(inds, buf) {
+			if !yield(inds) {
 				return
 			}
 		}

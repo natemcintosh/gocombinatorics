@@ -15,9 +15,10 @@ Uses Go 1.18 generics. No external dependencies beyond the standard library.
 - [X] Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
 - [X] Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
 
-Each type provides two iteration methods, both returning `iter.Seq2[[]int, []T]`:
-- **`All()`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
-- **`AllBorrowed()`** — yields shared internal buffers, overwritten each iteration. Much faster (see benchmarks below), but callers must not retain or modify the yielded slices.
+Each type provides three iteration methods:
+- **`All() iter.Seq2[[]int, []T]`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
+- **`AllBorrowed() iter.Seq2[[]int, []T]`** — yields shared internal buffers, overwritten each iteration. Much faster (see benchmarks below), but callers must not retain or modify the yielded slices.
+- **`IndicesBorrowed() iter.Seq[[]int]`** — yields only the index slice and never gathers items. The fastest path when you need only the combinatorial structure — up to ~10× faster, and constant regardless of element size ([see below](#index-only-iteration-with-indicesborrowed)).
 
 ---
 ## How to use:
@@ -143,10 +144,50 @@ Measured on an Intel i7-14700F. `All()` allocates 2 fresh slices per iteration. 
 | Permutations | (10, 8) | 1,814,400 | 3,628,814 | 6 | ~6.7x |
 | Product | (10, 3) | 1,000 | 2,005 | 5 | ~9.5x |
 | Product | (6, 6) | 46,656 | 93,317 | 5 | ~9.4x |
-| Powerset | (10, —) | 1,024 | 2,478 | 432 | ~3.9x |
-| Powerset | (16, —) | 65,536 | 132,144 | 1,074 | ~7.3x |
+| Powerset | (10, —) | 1,024 | 2,478 | 423 | ~3.9x |
+| Powerset | (16, —) | 65,536 | 132,144 | 1,059 | ~7.3x |
 
 For a whole-process, cross-language wall-clock comparison against Python's stdlib `itertools` and the Rust `itertools` crate (run with [hyperfine](https://github.com/sharkdp/hyperfine) via `just bench-compare`), see [`bench/RESULTS.md`](bench/RESULTS.md).
+
+---
+## Index-Only Iteration with `IndicesBorrowed()`
+
+Often you don't need the items at all — only the combinatorial *structure* (the `[]int` indices): for counting, scoring an index-space cost function, driving a struct-of-arrays (SoA) layout, or indexing your own columns. In those cases, materializing `[]T` items every iteration is pure wasted work.
+
+`IndicesBorrowed()` yields the exact same index sequence as `AllBorrowed()`, but never gathers items:
+
+```go
+c, _ := combo.NewCombinations(myData, 3)
+
+// Items path: gathers myData[i] into a []T every iteration.
+for indices, items := range c.AllBorrowed() {
+    _ = items // ... use items
+}
+
+// Index-only fast path: no item gather at all.
+for indices := range c.IndicesBorrowed() {
+    // indices is borrowed — do NOT retain it across iterations (clone if needed).
+    score(indices) // e.g. index your own columns: colA[indices[0]], colB[indices[1]], ...
+}
+```
+
+Like `AllBorrowed()`, the yielded slice is reused in place — clone it if you need to keep it.
+
+### Why it's faster
+
+The item gather is a random-access scatter into your data slice that the index-only loop skips entirely. Two effects compound:
+
+- **Even for the smallest payload (`int`), index-only is faster** — the gather costs even when `T` is a single word.
+- **Index-only is payload-agnostic**: its cost is constant regardless of `sizeof(T)`, while item materialization scales with the payload. The bigger your `T`, the more you save.
+
+Microbenchmark, `C(22, 11) = 705,432` combinations, full iteration each op (Intel i7-14700F, Go 1.24, linux/amd64). `Items` = `AllBorrowed()`; `Indices` = `IndicesBorrowed()`:
+
+| Payload `T` | `Items` ns/op | `Indices` ns/op | Speedup |
+|-------------|--------------:|----------------:|--------:|
+| `int`       |     5,209,111 |       2,156,814 | ~2.4×   |
+| `[192]byte` |    20,947,620 |       1,997,375 | ~10.5×  |
+
+Note how `Indices` stays ~constant (~2 ms) while `Items` grows ~4× from `int` to `[192]byte`. This pairs naturally with an **SoA** design: run combinatorics over a slice of `int` ids and index your own columns caller-side, rather than building an array-of-structs of fat `T`. Reproduce with `go test -bench BenchmarkCombinationsIndicesVsItems -benchmem`.
 
 ---
 ## How is this library tested?

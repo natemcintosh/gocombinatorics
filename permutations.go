@@ -53,15 +53,29 @@ func (p *Permutations[T]) All() iter.Seq2[[]int, []T] {
 // iterations. Use All() if you need to store results.
 func (p *Permutations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
+		buf := make([]T, p.k)
+		for inds := range p.IndicesBorrowed() {
+			fillBuf(buf, p.data, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
+
+// IndicesBorrowed yields the same index sequence as AllBorrowed, but never
+// gathers items into a []T. The yielded indices slice is reused (borrowed)
+// across iterations; clone it if you need to retain it. This is the fast path
+// for callers that only need the combinatorial structure, not the items.
+func (p *Permutations[T]) IndicesBorrowed() iter.Seq[[]int] {
+	return func(yield func([]int) bool) {
 		inds := make([]int, p.n)
 		for i := range p.n {
 			inds[i] = i
 		}
 		cycles := stepped_range(p.n, p.n-p.k, -1)
-		buf := make([]T, p.k)
 
-		fillBuf(buf, p.data, inds[:p.k])
-		if !yield(inds[:p.k], buf) {
+		if !yield(inds[:p.k]) {
 			return
 		}
 
@@ -78,8 +92,7 @@ func (p *Permutations[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 				} else {
 					j := cycles[i]
 					inds[i], inds[len(inds)-j] = inds[len(inds)-j], inds[i]
-					fillBuf(buf, p.data, inds[:p.k])
-					if !yield(inds[:p.k], buf) {
+					if !yield(inds[:p.k]) {
 						return
 					}
 					found = true

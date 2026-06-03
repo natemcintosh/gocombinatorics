@@ -56,9 +56,27 @@ func (p *Powerset[T]) All() iter.Seq2[[]int, []T] {
 // results.
 func (p *Powerset[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 	return func(yield func([]int, []T) bool) {
+		buf := make([]T, 0, p.n)
+		for inds := range p.IndicesBorrowed() {
+			buf = buf[:len(inds)]
+			fillBuf(buf, p.data, inds)
+			if !yield(inds, buf) {
+				return
+			}
+		}
+	}
+}
+
+// IndicesBorrowed yields the same index sequence as AllBorrowed, but never
+// gathers items into a []T. The yielded indices slice is reused (borrowed)
+// across iterations and its length grows with the subset size; clone it if you
+// need to retain it. This is the fast path for callers that only need the
+// combinatorial structure, not the items.
+func (p *Powerset[T]) IndicesBorrowed() iter.Seq[[]int] {
+	return func(yield func([]int) bool) {
 		// The empty set, yielded first. NewCombinations rejects r <= 0, so it is
 		// handled separately here rather than in the loop below.
-		if !yield([]int{}, []T{}) {
+		if !yield([]int{}) {
 			return
 		}
 
@@ -67,8 +85,8 @@ func (p *Powerset[T]) AllBorrowed() iter.Seq2[[]int, []T] {
 			if err != nil {
 				return
 			}
-			for inds, items := range c.AllBorrowed() {
-				if !yield(inds, items) {
+			for inds := range c.IndicesBorrowed() {
+				if !yield(inds) {
 					return
 				}
 			}
