@@ -193,11 +193,23 @@ Note how `Indices` stays ~constant (~2 ms) while `Items` grows ~3× from `int` t
 
 ---
 ## How is this library tested?
-There are a few basic tests, including one testing a combination of length 1,313,400, one
-testing a combination with replacement of length 11,628, one testing a permutation of
-length 970,200.
+The suite has **29 test functions**, which expand to roughly **1,000 executed cases** on
+each `go test` run — the property tests alone draw 100 random inputs per iterator type.
+The exact total varies run to run, because those inputs are random and very large cases
+are skipped by a 10,000,000-occurrence guard. The testing happens at a few layers:
 
-The file `property_test.go` also performs some basic property testing (do we see the
-number of elements we expect to) on 100 random inputs to each of the five iterator types
-— combinations, combinations with replacement, permutations, product, and powerset — and
-to their `AllBorrowed()` variants, every time `go test` is run.
+- **Golden fixture tests.** Exact output is compared against CSV fixtures in `testdata/`,
+  including a combination of length 1,313,400 (200 choose 3), a combination with
+  replacement of length 11,628 (C(19, 5)), and a permutation of length 970,200
+  (100 · 99 · 98).
+- **Per-type unit tests.** Table-driven tests cover constructor validation, small
+  hand-verified output sequences (including string payloads), and the `nchoosek` /
+  `factorial` math helpers.
+- **Iteration-path agreement.** All three iteration paths — `All()`, `AllBorrowed()`, and
+  `IndicesBorrowed()` — are cross-checked against each other so the low-allocation and
+  index-only paths can't silently diverge from `All()`. `indices_test.go` verifies that
+  `IndicesBorrowed()` matches `AllBorrowed()` for all five iterator types.
+- **Property tests.** `property_test.go` runs 100 random inputs through both `All()` and
+  `AllBorrowed()` for each of the five iterator types — combinations, combinations with
+  replacement, permutations, product, and powerset — checking that every index appears
+  exactly the number of times the math predicts.
