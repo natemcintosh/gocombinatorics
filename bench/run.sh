@@ -41,6 +41,33 @@ itertools_ver="$(awk '/^name = "itertools"/{f=1} f&&/^version =/{gsub(/"/,"",$3)
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
+# emit_mermaid <hyperfine-json> <title> prints a GitHub-native mermaid
+# xychart-beta bar chart of the mean wall-clock time (ms) per command. Mermaid
+# bar charts are single-series, so this is one chart per workload.
+emit_mermaid() {
+    python3 - "$1" "$2" <<'PY'
+import json, sys
+
+with open(sys.argv[1]) as f:
+    results = json.load(f)["results"]
+title = sys.argv[2]
+
+# hyperfine writes results in the order the commands were passed; -n names
+# land in the "command" field.
+names = [r["command"].replace("()", "") for r in results]
+means_ms = [r["mean"] * 1000 for r in results]
+ymax = max(means_ms) * 1.1
+
+print("```mermaid")
+print("xychart-beta")
+print(f'    title "{title} (mean ms, lower is better)"')
+print("    x-axis [" + ", ".join(f'"{n}"' for n in names) + "]")
+print(f'    y-axis "milliseconds" 0 --> {ymax:.0f}')
+print("    bar [" + ", ".join(f"{m:.1f}" for m in means_ms) + "]")
+print("```")
+PY
+}
+
 # Process-startup floor: bare Python interpreter, no imports.
 echo "==> Measuring Python startup floor"
 hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N 'python3 -c pass' >/dev/null
@@ -106,8 +133,9 @@ for w in "${workloads[@]}"; do
         go_borrowed="$go_bin --borrowed $op $n $k"
     fi
 
+    json="$tmp/run_$run.json"
     echo "==> Benchmarking $label"
-    hyperfine --warmup 3 --export-markdown "$out" \
+    hyperfine --warmup 3 --export-markdown "$out" --export-json "$json" \
         -n "Python itertools" "$py_cmd" \
         -n "Rust itertools" "$rust_cmd" \
         -n "Go All()" "$go_all" \
@@ -116,6 +144,8 @@ for w in "${workloads[@]}"; do
     {
         echo
         echo "### $label"
+        echo
+        emit_mermaid "$json" "$label"
         echo
         cat "$out"
     } >>"$results"
