@@ -19,17 +19,21 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) for all commit 
 
 ## Architecture
 
-Single-package Go library (`package gocombinatorics`) providing lazy iterators for combinatorics, modeled after Python's `itertools`. Uses Go 1.18 generics.
+Single-package Go library (`package gocombinatorics`) providing lazy iterators for combinatorics, modeled after Python's `itertools`. Uses generics and `iter.Seq2` range-over-func iterators. The library itself only needs Go 1.23+, but `go.mod` declares 1.24 because the benchmarks use `testing.B.Loop()` (added in 1.24).
 
 **Three iterator types**, all following the same pattern:
 - `Combinations[T]` — n choose k
 - `CombinationsWithReplacement[T]` — combinations allowing repeated elements
-- `Permutations[T]` — k-length permutations of n elements (uses a `cycles` slice for state)
+- `Permutations[T]` — k-length permutations of n elements
 
-**Shared interface** (`CombinationLike[T]` in `general.go`): `Next() bool`, `LenInds() int`, `Indices() []int`, `Items() []T`. Declared but not used as a constraint anywhere — the types satisfy it structurally.
+Each is constructed with a `NewX(input_data []T, k int) (*X[T], error)` constructor that validates `k`/`n`, copies the input, and precomputes the total count into the exported `Length *big.Int` field.
 
-**Iteration pattern**: call `Next()` to advance, then `Items()` or `Indices()` to read the current state. Both return shared internal slices (documented as such) — callers must copy if they need to retain values across iterations.
+**Iteration**: each type exposes two `iter.Seq2[[]int, []T]` methods (range over them with Go's range-over-func):
+- `All()` — yields a freshly allocated indices slice and items slice each iteration; safe to retain.
+- `AllBorrowed()` — yields the same internal index/item buffers, overwritten in place each iteration; the caller must not retain or mutate them across iterations. Use for low-allocation hot loops.
 
-**Helper functions** live alongside their primary consumer: `nchoosek`/`factorial` in `combinations.go`, `num_combinations_w_replacement`/`elts_in_combo_w_replacement` in `combinations_w_replacements.go`, `n_permutations`/`elts_in_permutations`/`stepped_range` in `permutations.go`. `fill_buffer` (the shared index-to-item mapper) is in `general.go`.
+`All()` is implemented by wrapping `AllBorrowed()` and `slices.Clone`-ing each pair, so the iteration algorithm lives in `AllBorrowed()`. `Permutations.AllBorrowed()` keeps a local `cycles` slice for state.
+
+**Helper functions** live alongside their primary consumer: `nchoosek`/`factorial` in `combinations.go`, `num_combinations_w_replacement`/`elts_in_combo_w_replacement` in `combinations_w_replacements.go`, `n_permutations`/`elts_in_permutations`/`stepped_range` in `permutations.go`. `fillBuf` (the shared index-to-item mapper) is in `general.go`.
 
 **Testing**: table-driven unit tests per type plus `property_test.go` which runs 100 randomized inputs per type, verifying that each index appears the mathematically expected number of times. CSV fixtures in `testdata/`.
