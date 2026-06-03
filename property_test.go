@@ -216,6 +216,130 @@ func Test100RandomCombinationsWithReplacementBorrowed(t *testing.T) {
 	}
 }
 
+func Test100RandomProduct(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		// 1 <= n <= 8, 1 <= k <= 6
+		n := rand.Int63n(8) + 1
+		k := rand.Int63n(6) + 1
+
+		times_we_see_each_index := elts_in_product(int(n), int(k))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			p, err := NewProduct(data, int(k))
+			if err != nil {
+				t.Errorf("Error creating Product: %v", err)
+			}
+
+			counts := indexCounter(p.All())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
+func Test100RandomProductBorrowed(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		n := rand.Int63n(8) + 1
+		k := rand.Int63n(6) + 1
+
+		times_we_see_each_index := elts_in_product(int(n), int(k))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v, k=%v", n, k)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			p, err := NewProduct(data, int(k))
+			if err != nil {
+				t.Errorf("Error creating Product: %v", err)
+			}
+
+			counts := indexCounter(p.AllBorrowed())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
+func Test100RandomPowerset(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		// 1 <= n <= 15
+		n := rand.Int63n(15) + 1
+
+		times_we_see_each_index := elts_in_powerset(int(n))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v", n)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			p, err := NewPowerset(data)
+			if err != nil {
+				t.Errorf("Error creating Powerset: %v", err)
+			}
+
+			counts := indexCounter(p.All())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
+func Test100RandomPowersetBorrowed(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		n := rand.Int63n(15) + 1
+
+		times_we_see_each_index := elts_in_powerset(int(n))
+		if times_we_see_each_index.Cmp(big.NewInt(10000000)) > 0 {
+			t.Logf("Skipping test because we see each index more than 10_000_000 times")
+			continue
+		}
+
+		run_name := fmt.Sprintf("n=%v", n)
+		t.Run(run_name, func(t *testing.T) {
+			data := stepped_range(0, int(n), 1)
+			p, err := NewPowerset(data)
+			if err != nil {
+				t.Errorf("Error creating Powerset: %v", err)
+			}
+
+			counts := indexCounter(p.AllBorrowed())
+
+			for num, count := range counts {
+				count_big := big.NewInt(int64(count))
+				if count_big.Cmp(times_we_see_each_index) != 0 {
+					t.Errorf("Expected %v to appear %v times, but it appeared %v times", num, times_we_see_each_index, count)
+				}
+			}
+		})
+	}
+}
+
 func Test100RandomPermutations(t *testing.T) {
 	// Do 100 iterations
 	for i := 0; i < 100; i++ {

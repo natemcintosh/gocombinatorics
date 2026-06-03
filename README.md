@@ -12,6 +12,8 @@ Uses Go 1.18 generics. No external dependencies beyond the standard library.
 - [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
+- [X] Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
+- [X] Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
 
 Each type provides two iteration methods, both returning `iter.Seq2[[]int, []T]`:
 - **`All()`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
@@ -80,6 +82,31 @@ func main() {
 	for _, items := range combos.All() {
 		fmt.Println(items)
 	}
+}
+```
+
+`Product` gives the k-fold Cartesian product of a slice with itself — equivalent to
+`itertools.product(data, repeat=k)`. Unlike `Combinations`/`Permutations`, `k` may exceed
+`len(data)`, since each of the `k` positions independently ranges over every element:
+```go
+p, err := combo.NewProduct([]int{0, 1, 2}, 2)
+if err != nil {
+	log.Fatal(err)
+}
+for indices, items := range p.All() {
+	fmt.Println(indices, items) // [0 0] [0 0], [0 1] [0 1], ... [2 2] [2 2] — 9 in all
+}
+```
+
+`Powerset` yields all `2^n` subsets, starting with the empty set, matching Python's
+`powerset` recipe. It takes no `k`:
+```go
+ps, err := combo.NewPowerset([]string{"a", "b", "c"})
+if err != nil {
+	log.Fatal(err)
+}
+for indices, items := range ps.All() {
+	fmt.Println(indices, items) // [] [], [0] [a], [1] [b], ... [0 1 2] [a b c] — 8 in all
 }
 ```
 
