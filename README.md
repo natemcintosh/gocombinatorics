@@ -9,12 +9,12 @@ Lazy combinatorics using Go 1.24+ iterators. Each iterator's `All()` method retu
 Uses Go 1.18 generics. No external dependencies beyond the standard library.
 
 ## On Offer:
-- [X] Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
-- [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
-- [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
-- [X] Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
-- [X] Lazy ProductOf (Cartesian product of multiple distinct slices): create a `ProductOf` struct with `NewProductOf()` function
-- [X] Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
+- Lazy Combinations: create a `Combinations` struct with `NewCombinations()` function
+- Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
+- Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
+- Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
+- Lazy ProductOf (Cartesian product of multiple distinct slices): create a `ProductOf` struct with `NewProductOf()` function
+- Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
 
 Each type provides three iteration methods:
 - **`All() iter.Seq2[[]int, []T]`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
@@ -212,7 +212,7 @@ Note how `Indices` stays ~constant (~2 ms) while `Items` grows ~3× from `int` t
 
 ---
 ## How is this library tested?
-The suite has **29 test functions**, which expand to roughly **1,000 executed cases** on
+The suite has **51 test functions**, which expand to roughly **1,200 executed cases** on
 each `go test` run — the property tests alone draw 100 random inputs per iterator type.
 The exact total varies run to run, because those inputs are random and very large cases
 are skipped by a 10,000,000-occurrence guard. The testing happens at a few layers:
@@ -227,8 +227,8 @@ are skipped by a 10,000,000-occurrence guard. The testing happens at a few layer
 - **Iteration-path agreement.** All three iteration paths — `All()`, `AllBorrowed()`, and
   `IndicesBorrowed()` — are cross-checked against each other so the low-allocation and
   index-only paths can't silently diverge from `All()`. `indices_test.go` verifies that
-  `IndicesBorrowed()` matches `AllBorrowed()` for all five iterator types.
+  `IndicesBorrowed()` matches `AllBorrowed()` for all six iterator types.
 - **Property tests.** `property_test.go` runs 100 random inputs through both `All()` and
-  `AllBorrowed()` for each of the five iterator types — combinations, combinations with
-  replacement, permutations, product, and powerset — checking that every index appears
+  `AllBorrowed()` for each of the six iterator types — combinations, combinations with
+  replacement, permutations, product, product-of, and powerset — checking that every index appears
   exactly the number of times the math predicts.
