@@ -100,6 +100,28 @@ func (p *Product[T]) IndicesBorrowed() iter.Seq[[]int] {
 	}
 }
 
+// Nth returns the indices and items that All() would yield on its i-th
+// iteration (0-based), without iterating from the start. The returned slices
+// are freshly allocated and safe to retain. Returns an error if i < 0 or
+// i >= Length. The argument i is not modified.
+func (p *Product[T]) Nth(i *big.Int) ([]int, []T, error) {
+	if err := check_nth_bounds(i, p.Length); err != nil {
+		return nil, nil, err
+	}
+	// Mixed radix base n, rightmost digit fastest, matching the odometer order.
+	r := new(big.Int).Set(i)
+	base := big.NewInt(int64(p.n))
+	rem := new(big.Int)
+	inds := make([]int, p.k)
+	for j := p.k - 1; j >= 0; j-- {
+		r.DivMod(r, base, rem)
+		inds[j] = int(rem.Int64())
+	}
+	items := make([]T, len(inds))
+	fillBuf(items, p.data, inds)
+	return inds, items, nil
+}
+
 // num_products returns the number of k-fold products of n elements, i.e. n^k.
 func num_products(n, k int) *big.Int {
 	return new(big.Int).Exp(big.NewInt(int64(n)), big.NewInt(int64(k)), nil)

@@ -105,6 +105,42 @@ func (c *Combinations[T]) IndicesBorrowed() iter.Seq[[]int] {
 	}
 }
 
+// Nth returns the indices and items that All() would yield on its i-th
+// iteration (0-based), without iterating from the start. The returned slices
+// are freshly allocated and safe to retain. Returns an error if i < 0 or
+// i >= Length. The argument i is not modified.
+func (c *Combinations[T]) Nth(i *big.Int) ([]int, []T, error) {
+	if err := check_nth_bounds(i, c.Length); err != nil {
+		return nil, nil, err
+	}
+	inds := unrank_combination(new(big.Int).Set(i), c.n, c.k)
+	items := make([]T, len(inds))
+	fillBuf(items, c.data, inds)
+	return inds, items, nil
+}
+
+// unrank_combination returns the i-th k-combination of {0..n-1} in
+// lexicographic order, using the combinatorial number system. It assumes
+// 0 <= i < nchoosek(n, k) and consumes (mutates) i.
+func unrank_combination(i *big.Int, n, k int) []int {
+	inds := make([]int, k)
+	v := 0
+	for p := range k {
+		for {
+			// Number of combinations that have v at position p.
+			c := nchoosek(uint64(n-1-v), uint64(k-1-p))
+			if i.Cmp(c) < 0 {
+				inds[p] = v
+				v++
+				break
+			}
+			i.Sub(i, c)
+			v++
+		}
+	}
+	return inds
+}
+
 // nchoosek returns the number of combinations of n things taken k at a time.
 // nchoosek(n, k) = n! / (k! * (n-k)!) if n > k
 // nchoosek(n, k) = 0 if k > n

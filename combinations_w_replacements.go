@@ -101,6 +101,25 @@ func (c *CombinationsWithReplacement[T]) IndicesBorrowed() iter.Seq[[]int] {
 	}
 }
 
+// Nth returns the indices and items that All() would yield on its i-th
+// iteration (0-based), without iterating from the start. The returned slices
+// are freshly allocated and safe to retain. Returns an error if i < 0 or
+// i >= Length. The argument i is not modified.
+func (c *CombinationsWithReplacement[T]) Nth(i *big.Int) ([]int, []T, error) {
+	if err := check_nth_bounds(i, c.Length); err != nil {
+		return nil, nil, err
+	}
+	// Non-descending k-tuples over n values biject order-preservingly with
+	// k-combinations of n+k-1 via comb[j] = inds[j] + j (stars and bars).
+	inds := unrank_combination(new(big.Int).Set(i), c.n+c.k-1, c.k)
+	for j := range inds {
+		inds[j] -= j
+	}
+	items := make([]T, len(inds))
+	fillBuf(items, c.data, inds)
+	return inds, items, nil
+}
+
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)
 func num_combinations_w_replacement(n, k int) *big.Int {
 	numerator := factorial(int64(n + k - 1))

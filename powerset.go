@@ -94,6 +94,34 @@ func (p *Powerset[T]) IndicesBorrowed() iter.Seq[[]int] {
 	}
 }
 
+// Nth returns the indices and items that All() would yield on its i-th
+// iteration (0-based), without iterating from the start. Rank 0 is the empty
+// set; ranks then proceed through subset sizes 1..n, in combinations order
+// within each size. The returned slices are freshly allocated and safe to
+// retain. Returns an error if i < 0 or i >= Length. The argument i is not
+// modified.
+func (p *Powerset[T]) Nth(i *big.Int) ([]int, []T, error) {
+	if err := check_nth_bounds(i, p.Length); err != nil {
+		return nil, nil, err
+	}
+	if i.Sign() == 0 {
+		return []int{}, []T{}, nil
+	}
+	r := new(big.Int).Sub(i, big.NewInt(1))
+	for sz := 1; sz <= p.n; sz++ {
+		block := nchoosek(uint64(p.n), uint64(sz))
+		if r.Cmp(block) < 0 {
+			inds := unrank_combination(r, p.n, sz)
+			items := make([]T, len(inds))
+			fillBuf(items, p.data, inds)
+			return inds, items, nil
+		}
+		r.Sub(r, block)
+	}
+	// Unreachable: the size blocks sum to Length-1.
+	return nil, nil, errors.New("i must be less than Length")
+}
+
 // num_powersets returns the number of subsets of an n-element set, i.e. 2^n.
 func num_powersets(n int) *big.Int {
 	return new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(n)), nil)

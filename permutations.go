@@ -106,6 +106,36 @@ func (p *Permutations[T]) IndicesBorrowed() iter.Seq[[]int] {
 	}
 }
 
+// Nth returns the indices and items that All() would yield on its i-th
+// iteration (0-based), without iterating from the start. The returned slices
+// are freshly allocated and safe to retain. Returns an error if i < 0 or
+// i >= Length. The argument i is not modified.
+func (p *Permutations[T]) Nth(i *big.Int) ([]int, []T, error) {
+	if err := check_nth_bounds(i, p.Length); err != nil {
+		return nil, nil, err
+	}
+	// Falling-factorial (Lehmer) radix: digit j has place value
+	// (n-1-j) permute (k-1-j). The iteration order is lexicographic in the
+	// index tuples, so each digit selects from the remaining available indices.
+	r := new(big.Int).Set(i)
+	avail := make([]int, p.n)
+	for j := range avail {
+		avail[j] = j
+	}
+	inds := make([]int, max(p.k, 0))
+	for j := range inds {
+		base := n_permutations(p.n-1-j, p.k-1-j)
+		d := new(big.Int)
+		d.DivMod(r, base, r)
+		di := int(d.Int64())
+		inds[j] = avail[di]
+		avail = append(avail[:di], avail[di+1:]...)
+	}
+	items := make([]T, len(inds))
+	fillBuf(items, p.data, inds)
+	return inds, items, nil
+}
+
 func n_permutations(n, k int) *big.Int {
 	numerator := factorial(int64(n))
 	denominator := factorial(int64(n - k))
