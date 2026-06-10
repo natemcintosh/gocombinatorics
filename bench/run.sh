@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build the Go/Python/Rust drivers and run a hyperfine matrix comparing this
-# library against Python's stdlib itertools and the Rust itertools crate.
-# Writes the results, with pinned versions and caveats, to bench/RESULTS.md.
+# library against Python's stdlib itertools (plus sympy/more-itertools for the
+# partition ops) and the Rust itertools crate. Writes the results, with pinned
+# versions and caveats, to bench/RESULTS.md.
 #
 # See issue #8.
 set -euo pipefail
@@ -22,21 +23,42 @@ echo "==> Building Go driver"
 echo "==> Building Rust driver (--release)"
 cargo build --release --manifest-path "$bench_dir/rust/Cargo.toml" --quiet
 
-# Workload matrix: "op n k" (k empty for powerset). Sized so Python interpreter
-# startup is negligible relative to the iteration cost.
+# Python venv with the partition-op dependencies (sympy, more-itertools).
+# Using a prebuilt venv's interpreter directly keeps uv/pip out of the timed
+# commands.
+venv="$bin_dir/.venv"
+if [[ ! -x "$venv/bin/python" ]]; then
+    echo "==> Creating Python venv with sympy + more-itertools"
+    if command -v uv >/dev/null; then
+        uv venv --quiet "$venv"
+        uv pip install --quiet --python "$venv/bin/python" sympy more-itertools
+    else
+        python3 -m venv "$venv"
+        "$venv/bin/pip" install --quiet sympy more-itertools
+    fi
+fi
+py="$venv/bin/python"
+
+# Workload matrix: "op args...". Sized so Python interpreter startup is
+# negligible relative to the iteration cost.
 workloads=(
     "combinations 26 12"
     "cwr 20 10"
     "permutations 11 8"
     "product 10 7"
     "powerset 22"
+    "productof 10 9 8 7 6 5 4 3"
+    "intpartitions 65"
+    "setpartitions 11"
 )
 
 # Versions, pinned for reproducibility.
 go_ver="$(go version | awk '{print $3}')"
-py_ver="$(python3 --version | awk '{print $2}')"
+py_ver="$("$py" --version | awk '{print $2}')"
 rust_ver="$(rustc --version | awk '{print $2}')"
 itertools_ver="$(awk '/^name = "itertools"/{f=1} f&&/^version =/{gsub(/"/,"",$3); print $3; exit}' "$bench_dir/rust/Cargo.lock")"
+sympy_ver="$("$py" -c 'import sympy; print(sympy.__version__)')"
+more_itertools_ver="$("$py" -c 'import more_itertools; print(more_itertools.__version__)')"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -45,7 +67,7 @@ trap 'rm -rf "$tmp"' EXIT
 # xychart-beta bar chart of the mean wall-clock time (ms) per command. Mermaid
 # bar charts are single-series, so this is one chart per workload.
 emit_mermaid() {
-    python3 - "$1" "$2" <<'PY'
+    "$py" - "$1" "$2" <<'PY'
 import json, sys
 
 with open(sys.argv[1]) as f:
@@ -68,9 +90,12 @@ print("```")
 PY
 }
 
-# Process-startup floor: bare Python interpreter, no imports.
-echo "==> Measuring Python startup floor"
-hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N 'python3 -c pass' >/dev/null
+# Process-startup floors: bare interpreter, and interpreter + sympy import
+# (the practical lower bound for the intpartitions Python row).
+echo "==> Measuring Python startup floors"
+hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N \
+    -n "python -c pass" "$py -c pass" \
+    -n "python -c 'import sympy'" "$py -c 'import sympy'" >/dev/null
 
 # RESULTS.md header.
 {
@@ -89,6 +114,8 @@ hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N 'python3 -c pass' >/de
     echo "| Python | $py_ver |"
     echo "| Rust | $rust_ver |"
     echo "| itertools crate | $itertools_ver |"
+    echo "| sympy | $sympy_ver |"
+    echo "| more-itertools | $more_itertools_ver |"
     echo "| hyperfine | $(hyperfine --version | awk '{print $2}') |"
     echo
     echo "## Caveats"
@@ -98,15 +125,26 @@ hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N 'python3 -c pass' >/de
     echo "  those three are the fair comparison. Go \`AllBorrowed()\` reuses an"
     echo "  internal buffer and has no direct analog in the other two — it is the"
     echo "  library's low-allocation fast path, shown here for reference."
+    echo "- **Partitions have no itertools analog.** For \`intpartitions\` Python"
+    echo "  uses \`sympy\` and for \`setpartitions\` it uses \`more-itertools\`; the"
+    echo "  Rust \`itertools\` crate has neither, so the Rust rows for those two"
+    echo "  workloads are small hand-rolled generators mirroring this library's"
+    echo "  algorithms — they benchmark \"what a Rust programmer would write\","
+    echo "  not an ecosystem library. The Rust setpartitions generator also only"
+    echo "  walks the block assignments (like Go \`AllBorrowed()\`), while Python"
+    echo "  more-itertools and Go \`All()\` materialize the blocks themselves."
     echo "- **Startup overhead.** A static Go/Rust binary starts far faster than the"
     echo "  Python interpreter. Workloads are sized so iteration dominates; the"
-    echo "  Python startup floor below is the practical lower bound for the Python"
-    echo "  rows."
-    echo "- Each driver iterates the full sequence and sum-accumulates every index"
-    echo "  (wrapping 64-bit) to defeat dead-code elimination; all drivers print the"
-    echo "  same accumulator for a given (op, n, k)."
+    echo "  Python startup floors below are the practical lower bounds for the"
+    echo "  Python rows (\`import sympy\` applies to the intpartitions row)."
+    echo "- Each driver iterates the full sequence and sum-accumulates a"
+    echo "  data-dependent value per item (wrapping 64-bit) to defeat dead-code"
+    echo "  elimination; all drivers print the same accumulator for a given"
+    echo "  workload. Index ops sum every index, intpartitions sums every part,"
+    echo "  and setpartitions sums \`assignment[i] * i\` over the canonical"
+    echo "  restricted-growth-string block assignment."
     echo
-    echo "### Python startup floor"
+    echo "### Python startup floors"
     echo
     cat "$tmp/floor.md"
     echo
@@ -115,29 +153,21 @@ hyperfine --warmup 3 --export-markdown "$tmp/floor.md" -N 'python3 -c pass' >/de
 
 run=0
 for w in "${workloads[@]}"; do
-    read -r op n k <<<"$w"
+    read -r op rest <<<"$w"
     run=$((run + 1))
     out="$tmp/run_$run.md"
 
-    if [[ "$op" == "powerset" ]]; then
-        label="$op n=$n"
-        py_cmd="python3 $py_driver $op $n"
-        rust_cmd="$rust_bin $op $n"
-        go_all="$go_bin $op $n"
-        go_borrowed="$go_bin --borrowed $op $n"
-    else
-        label="$op n=$n k=$k"
-        py_cmd="python3 $py_driver $op $n $k"
-        rust_cmd="$rust_bin $op $n $k"
-        go_all="$go_bin $op $n $k"
-        go_borrowed="$go_bin --borrowed $op $n $k"
-    fi
+    label="$op $rest"
+    py_cmd="$py $py_driver $op $rest"
+    rust_cmd="$rust_bin $op $rest"
+    go_all="$go_bin $op $rest"
+    go_borrowed="$go_bin --borrowed $op $rest"
 
     json="$tmp/run_$run.json"
     echo "==> Benchmarking $label"
     hyperfine --warmup 3 --export-markdown "$out" --export-json "$json" \
-        -n "Python itertools" "$py_cmd" \
-        -n "Rust itertools" "$rust_cmd" \
+        -n "Python" "$py_cmd" \
+        -n "Rust" "$rust_cmd" \
         -n "Go All()" "$go_all" \
         -n "Go AllBorrowed()" "$go_borrowed"
 
