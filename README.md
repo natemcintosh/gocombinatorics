@@ -15,8 +15,10 @@ Uses Go 1.18 generics. No external dependencies beyond the standard library.
 - Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
 - Lazy ProductOf (Cartesian product of multiple distinct slices): create a `ProductOf` struct with `NewProductOf()` function
 - Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
+- Lazy Integer Partitions (the ways to write `n` as a sum of positive integers): create an `IntegerPartitions` struct with `NewIntegerPartitions()` function
+- Lazy Set Partitions (the ways to divide a slice into non-empty, disjoint blocks): create a `SetPartitions` struct with `NewSetPartitions()` (all partitions, Bell numbers) or `NewSetPartitionsK()` (exactly `k` blocks, Stirling numbers of the second kind)
 
-Each type provides three iteration methods:
+The two partition types yield differently shaped values (see [Partitions](#partitions) below); everything in the next three paragraphs applies to the other six types. Each of those provides three iteration methods:
 - **`All() iter.Seq2[[]int, []T]`** — yields freshly allocated index and item slices each iteration. Safe to retain across iterations.
 - **`AllBorrowed() iter.Seq2[[]int, []T]`** — yields shared internal buffers, overwritten each iteration. Much faster (see benchmarks below), but callers must not retain or modify the yielded slices.
 - **`IndicesBorrowed() iter.Seq[[]int]`** — yields only the index slice and never gathers items. The fastest path when you need only the combinatorial structure — up to ~8× faster, and constant regardless of element size ([see below](#index-only-iteration-with-indicesborrowed)).
@@ -133,6 +135,44 @@ for indices, items := range ps.All() {
 ```
 
 ---
+## Partitions
+
+`IntegerPartitions` yields each partition of `n` as a single `[]int` of parts in
+non-increasing order, in reverse lexicographic order. Its `Length` is the partition
+function `p(n)`:
+```go
+ip, err := combo.NewIntegerPartitions(5)
+if err != nil {
+	log.Fatal(err)
+}
+for parts := range ip.All() {
+	fmt.Println(parts) // [5], [4 1], [3 2], [3 1 1], [2 2 1], [2 1 1 1], [1 1 1 1 1]
+}
+```
+
+`SetPartitions` yields each partition as an assignment slice (a restricted growth
+string: `assignment[i]` is the block index of element `i`) plus the blocks themselves
+as a `[][]T`. Blocks are ordered by their smallest element, and elements keep their
+input order within a block. `Length` is the Bell number `B(n)`, or the Stirling number
+of the second kind `S(n, k)` when constructed with `NewSetPartitionsK`:
+```go
+sp, err := combo.NewSetPartitions([]string{"a", "b", "c"})
+if err != nil {
+	log.Fatal(err)
+}
+for assignment, blocks := range sp.All() {
+	fmt.Println(assignment, blocks) // [0 0 0] [[a b c]], [0 0 1] [[a b] [c]], ... [0 1 2] [[a] [b] [c]] — 5 in all
+}
+
+sp2, _ := combo.NewSetPartitionsK([]int{1, 2, 3, 4}, 2) // the 7 ways to split into exactly 2 blocks
+```
+
+Both types provide `All()` and `AllBorrowed()` with the usual fresh-vs-reused buffer
+contract. `SetPartitions` also provides `AssignmentsBorrowed() iter.Seq[[]int]`, the
+index-only fast path analogous to `IndicesBorrowed()`. Neither type currently
+implements `Nth`/`Random`.
+
+---
 ## Low-Allocation Iteration with `AllBorrowed()`
 
 `AllBorrowed()` reuses internal buffers instead of allocating fresh slices each iteration. Use it when you process each combination/permutation inline without storing it:
@@ -212,7 +252,7 @@ Note how `Indices` stays ~constant (~2 ms) while `Items` grows ~3× from `int` t
 
 ---
 ## How is this library tested?
-The suite has **51 test functions**, which expand to roughly **1,200 executed cases** on
+The suite has **62 test functions**, which expand to roughly **1,200 executed cases** on
 each `go test` run — the property tests alone draw 100 random inputs per iterator type.
 The exact total varies run to run, because those inputs are random and very large cases
 are skipped by a 10,000,000-occurrence guard. The testing happens at a few layers:
@@ -231,4 +271,7 @@ are skipped by a 10,000,000-occurrence guard. The testing happens at a few layer
 - **Property tests.** `property_test.go` runs 100 random inputs through both `All()` and
   `AllBorrowed()` for each of the six iterator types — combinations, combinations with
   replacement, permutations, product, product-of, and powerset — checking that every index appears
-  exactly the number of times the math predicts.
+  exactly the number of times the math predicts. The partition types get their own
+  exhaustive sweeps: every integer partition for `n` up to 12 and every set partition
+  (for every valid `k`) for `n` up to 8 is checked for validity, uniqueness, and
+  agreement with `Length`.
