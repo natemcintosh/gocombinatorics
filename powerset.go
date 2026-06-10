@@ -4,6 +4,7 @@ import (
 	"errors"
 	"iter"
 	"math/big"
+	"math/rand"
 	"slices"
 )
 
@@ -120,6 +121,14 @@ func (p *Powerset[T]) Nth(i *big.Int) ([]int, []T, error) {
 	}
 	// Unreachable: the size blocks sum to Length-1.
 	return nil, nil, errors.New("i must be less than Length")
+}
+
+// Random returns a uniform-random subset, drawn using r, without enumerating
+// the powerset. The returned slices are freshly allocated and safe to retain.
+// r must be non-nil; pass a seeded *rand.Rand for deterministic results.
+func (p *Powerset[T]) Random(r *rand.Rand) ([]int, []T) {
+	inds, items, _ := p.Nth(random_rank(r, p.Length))
+	return inds, items
 }
 
 // num_powersets returns the number of subsets of an n-element set, i.e. 2^n.

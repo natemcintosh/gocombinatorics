@@ -4,6 +4,7 @@ import (
 	"errors"
 	"iter"
 	"math/big"
+	"math/rand"
 	"slices"
 )
 
@@ -117,6 +118,15 @@ func (c *Combinations[T]) Nth(i *big.Int) ([]int, []T, error) {
 	items := make([]T, len(inds))
 	fillBuf(items, c.data, inds)
 	return inds, items, nil
+}
+
+// Random returns a uniform-random element of the iteration space, drawn using
+// r, without enumerating it. The returned slices are freshly allocated and
+// safe to retain. r must be non-nil; pass a seeded *rand.Rand for
+// deterministic results.
+func (c *Combinations[T]) Random(r *rand.Rand) ([]int, []T) {
+	inds, items, _ := c.Nth(random_rank(r, c.Length))
+	return inds, items
 }
 
 // unrank_combination returns the i-th k-combination of {0..n-1} in

@@ -22,8 +22,9 @@ Each type provides three iteration methods:
 
 Each type also exposes a `Length *big.Int` field, precomputed by its constructor, holding the total number of items the iterator will yield (e.g. `n choose k` for `Combinations`, `2^n` for `Powerset`). It's a `*big.Int` because these counts can overflow `uint64` for even moderate inputs.
 
-Each type also provides an unranking method:
+Each type also provides unranking and random-sampling methods:
 - **`Nth(i *big.Int) ([]int, []T, error)`** — returns the indices and items that `All()` would yield on its *i*-th iteration (0-based), computed directly without iterating from the start. Returns freshly allocated slices, and an error if `i < 0` or `i >= Length`. Useful for sharded/parallel iteration, random sampling, or resuming from a checkpoint.
+- **`Random(r *rand.Rand) ([]int, []T)`** — returns a uniform-random element of the iteration space without enumerating it, by drawing a random rank in `[0, Length)` and unranking it. Pass a seeded `*rand.Rand` (from `math/rand`) for deterministic results.
 
 ---
 ## How to use:

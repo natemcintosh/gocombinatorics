@@ -4,6 +4,7 @@ import (
 	"errors"
 	"iter"
 	"math/big"
+	"math/rand"
 	"slices"
 )
 
@@ -118,6 +119,15 @@ func (c *CombinationsWithReplacement[T]) Nth(i *big.Int) ([]int, []T, error) {
 	items := make([]T, len(inds))
 	fillBuf(items, c.data, inds)
 	return inds, items, nil
+}
+
+// Random returns a uniform-random element of the iteration space, drawn using
+// r, without enumerating it. The returned slices are freshly allocated and
+// safe to retain. r must be non-nil; pass a seeded *rand.Rand for
+// deterministic results.
+func (c *CombinationsWithReplacement[T]) Random(r *rand.Rand) ([]int, []T) {
+	inds, items, _ := c.Nth(random_rank(r, c.Length))
+	return inds, items
 }
 
 // num_combinations_w_replacement returns (n+k-1)! / (k! * (n-1)!)

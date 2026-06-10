@@ -3,7 +3,13 @@ package gocombinatorics
 import (
 	"errors"
 	"math/big"
+	"math/rand"
 )
+
+// random_rank returns a uniform-random rank in [0, length).
+func random_rank(r *rand.Rand, length *big.Int) *big.Int {
+	return new(big.Int).Rand(r, length)
+}
 
 // check_nth_bounds validates that i is a valid 0-based rank, i.e. 0 <= i < length.
 func check_nth_bounds(i, length *big.Int) error {
