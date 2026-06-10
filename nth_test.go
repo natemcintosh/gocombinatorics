@@ -124,6 +124,27 @@ func TestProductNth(t *testing.T) {
 	}
 }
 
+func TestProductOfNth(t *testing.T) {
+	cases := [][]int{
+		{2, 3, 2},
+		{4},
+		{1, 5, 1},
+		{3, 3},
+	}
+	for _, axis_lens := range cases {
+		axes := make([][]int, len(axis_lens))
+		for i, n := range axis_lens {
+			axes[i] = iota_slice(n)
+		}
+		p, err := NewProductOf(axes...)
+		if err != nil {
+			t.Fatal(err)
+		}
+		check_nth_matches_all(t, p.Length, p.All(), p.Nth)
+		check_nth_errors(t, p.Length, p.Nth)
+	}
+}
+
 func TestPowersetNth(t *testing.T) {
 	for _, n := range []int{1, 3, 5} {
 		p, err := NewPowerset(iota_slice(n))
@@ -205,6 +226,31 @@ func TestNthLargeLength(t *testing.T) {
 	}
 	if !slices.Equal(inds, want) {
 		t.Fatalf("Product Nth(Length-1) = %v, want all 9s", inds)
+	}
+
+	// ProductOf over 30 axes of length 10: first tuple all zeros, last all 9s.
+	axes := make([][]int, 30)
+	for j := range axes {
+		axes[j] = iota_slice(10)
+	}
+	po, err := NewProductOf(axes...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inds, _, err = po.Nth(big.NewInt(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(inds, make([]int, 30)) {
+		t.Fatalf("ProductOf Nth(0) = %v, want all zeros", inds)
+	}
+	last = new(big.Int).Sub(po.Length, one)
+	inds, _, err = po.Nth(last)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(inds, want) {
+		t.Fatalf("ProductOf Nth(Length-1) = %v, want all 9s", inds)
 	}
 
 	// Combinations 100 choose 10: last tuple is [90..99].

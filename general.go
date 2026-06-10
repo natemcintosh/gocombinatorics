@@ -28,3 +28,11 @@ func fillBuf[T any](buf []T, data []T, inds []int) {
 		buf[i] = data[idx]
 	}
 }
+
+// fillBufAxes writes into buf the element of each axis selected by the
+// corresponding index, i.e. buf[i] = axes[i][inds[i]].
+func fillBufAxes[T any](buf []T, axes [][]T, inds []int) {
+	for i, idx := range inds {
+		buf[i] = axes[i][idx]
+	}
+}

@@ -86,6 +86,16 @@ func TestProductRandom(t *testing.T) {
 	check_random(t, p.All(), p.Random)
 }
 
+func TestProductOfRandom(t *testing.T) {
+	// Each axis is an iota of its own length, so items always equal indices,
+	// as check_random requires.
+	p, err := NewProductOf(iota_slice(2), iota_slice(4), iota_slice(3))
+	if err != nil {
+		t.Fatal(err)
+	}
+	check_random(t, p.All(), p.Random)
+}
+
 func TestPowersetRandom(t *testing.T) {
 	p, err := NewPowerset(iota_slice(5))
 	if err != nil {

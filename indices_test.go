@@ -70,6 +70,13 @@ func TestIndicesBorrowedMatchesAllBorrowed(t *testing.T) {
 	assertSameIndices(t, "Product",
 		collectIndices(prod.IndicesBorrowed()), indicesFromAll(prod.AllBorrowed()))
 
+	prodOf, err := NewProductOf(stepped_range(0, 2, 1), stepped_range(0, 4, 1), stepped_range(0, 3, 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertSameIndices(t, "ProductOf",
+		collectIndices(prodOf.IndicesBorrowed()), indicesFromAll(prodOf.AllBorrowed()))
+
 	ps, err := NewPowerset(data)
 	if err != nil {
 		t.Fatal(err)

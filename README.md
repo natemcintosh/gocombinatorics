@@ -13,6 +13,7 @@ Uses Go 1.18 generics. No external dependencies beyond the standard library.
 - [X] Lazy Combinations with replacement: create a `CombinationsWithReplacement` struct with `NewCombinationsWithReplacement()` function
 - [X] Lazy Permutations: create a `Permutations` struct with `NewPermutations()` function
 - [X] Lazy Product (k-fold Cartesian product, `n^k` tuples): create a `Product` struct with `NewProduct()` function
+- [X] Lazy ProductOf (Cartesian product of multiple distinct slices): create a `ProductOf` struct with `NewProductOf()` function
 - [X] Lazy Powerset (all `2^n` subsets, including the empty set): create a `Powerset` struct with `NewPowerset()` function
 
 Each type provides three iteration methods:
@@ -102,6 +103,20 @@ if err != nil {
 }
 for indices, items := range p.All() {
 	fmt.Println(indices, items) // [0 0] [0 0], [0 1] [0 1], ... [2 2] [2 2] — 9 in all
+}
+```
+
+`ProductOf` gives the Cartesian product of multiple distinct slices of possibly
+different lengths — equivalent to `itertools.product(A, B, C)`. All axes must share one
+element type, which makes it a natural fit for parameter sweeps / grid searches. Index
+`j` of each yielded indices slice refers to an element of axis `j`:
+```go
+p, err := combo.NewProductOf([]int{0, 1}, []int{10, 20, 30})
+if err != nil {
+	log.Fatal(err)
+}
+for indices, items := range p.All() {
+	fmt.Println(indices, items) // [0 0] [0 10], [0 1] [0 20], ... [1 2] [1 30] — 6 in all
 }
 ```
 
